@@ -7,6 +7,11 @@
 namespace apex {
 inline namespace v1 {
 
+// TODO: implement a thread type that works much like std::thread, but also
+// supports operations like the proposed std::thread::attributes (and other
+// pthread related operations). Might also be worth looking into adding a
+// threadpool, or just wrapping grand central dispatch instead.
+
 // Still needs some work, but this is effectively based off of the proposed
 // synchronized_value
 template <class T, class U=std::mutex>

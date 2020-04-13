@@ -5,13 +5,57 @@
 // std::unique_ptr to reduce overhead that currently exists in many
 // implementations and cannot be resolved without changing the ABI
 
+#include <apex/traits.hpp>
+#include <apex/types.hpp>
 #include <memory>
+#include <atomic>
 
 namespace apex {
 inline namespace v1 {
+namespace impl {
 
-template <class> struct default_delete;
+template <class T, class P>
+using has_use_count = decltype(T::use_count(std::declval<P>()));
+
+template <class T>
+using has_reset_action = typename T::reset_action;
+
+template <class T>
+struct stateful_deleter {
+  T instance;
+};
+
+} /* namespace impl */
+
+template <class T>
+struct default_delete {
+  void operator () (T* pointer) const noexcept { delete pointer; }
+};
+
+template <class T>
+struct default_delete<T[]> {
+  void operator () (T* pointer) const noexcept { delete[] pointer; }
+};
+
 template <class> struct retain_traits;
+
+template <class T>
+struct atomic_reference_count {
+  template <class> friend class retain_traits;
+protected:
+  atomic_reference_count () = default;
+private:
+  std::atomic<long> count { 1 };
+};
+
+template <class T>
+struct reference_count {
+  template <class> friend class retain_traits;
+protected:
+  reference_count () = default;
+private:
+  long count { 1 };
+};
 
 struct retain_t { retain_t () noexcept = default; };
 struct adopt_t { adopt_t () noexcept = default; };
@@ -19,16 +63,127 @@ struct adopt_t { adopt_t () noexcept = default; };
 inline constexpr retain_t retain { };
 inline constexpr adopt_t adopt { };
 
-template <class T, class D> struct unique_ptr; // std::unique_ptr has ABI issues
-// P0468
+template <class T>
+struct retain_traits final {
+  template <class U>
+  using enable_if_base = std::enable_if_t<std::is_base_of_v<U, T>>;
+
+  template <class U, class=enable_if_base<U>>
+  static void increment (atomic_reference_count<U>* ptr) noexcept {
+    ptr->count.fetch_add(1, std::memory_order_relaxed);
+  }
+
+  template <class U, class=enable_if_base<U>>
+  static void decrement (atomic_reference_count<U>* ptr) noexcept {
+    ptr->count.fetch_sub(1, std::memory_order_acq_rel);
+    if (not use_count(ptr)) { delete static_cast<T*>(ptr); }
+  }
+
+  template <class U, class=enable_if_base<U>>
+  static long use_count (atomic_reference_count<U>* ptr) noexcept {
+    return ptr->count.load(std::memory_order_relaxed);
+  }
+
+  template <class U, class=enable_if_base<U>>
+  static void increment (reference_count<U>* ptr) noexcept {
+    ++ptr->count;
+  }
+
+  template <class U, class=enable_if_base<U>>
+  static void decrement (reference_count<U>* ptr) noexcept {
+    --ptr->count;
+    if (not use_count(ptr)) { delete static_cast<T*>(ptr); }
+  }
+
+  template <class U, class=enable_if_base<U>>
+  static long use_count (reference_count<U>* ptr) noexcept {
+    return ptr->count;
+  }
+};
+
+// std::unique_ptr has ABI issues. The point of this recreation is to
+// allow it to be trivially_copyable. While this isn't "the best" argument,
+// what it means is that a `sizeof(unique_ptr<int>) == sizeof(int*)`, which
+// is not currently the case on all implementations.
+//template <class T, class D=default_delete<T>>
+//struct unique_ptr : std::conditional<
+//  std::is_final_v<D>,
+//  impl::stateful_deleter<D>,
+//  D
+//> {
+//
+//  explicit unique_ptr (pointer ptr) noexcept :
+//    ptr { std::move(ptr) }
+//  { }
+//
+//  unique_ptr (nullptr_t) noexcept : unique_ptr { } { }
+//
+//  unique_ptr (unique_ptr const&) = delete;
+//  unique_ptr (unique_ptr&& that) noexcept : ptr { that.release() } { }
+//  unique_ptr () noexcept = default;
+//  ~unique_ptr () noexcept {
+//    if (*this) { this->get_deleter()(this->get()); }
+//  }
+//
+//  template <class U, class E>
+//  unique_ptr& operator = (unique_ptr&& that) noexcept;
+//  unique_ptr& operator = (unique_ptr&& that) noexcept;
+//  unique_ptr& operator = (nullptr_t) noexcept;
+//
+//  void swap (unique_ptr& that) noexcept {
+//    using std::swap;
+//    swap(this->ptr, that.ptr);
+//  }
+//
+//  explicit operator bool () const noexcept { return this->get(); }
+//  decltype(auto) operator * () const noexcept { return *this->get(); }
+//  pointer operator -> () const noexcept { return this->get(); }
+//
+//  pointer get () const noexcept { return this->ptr; }
+//
+//  D& get_deleter () noexcept {
+//    if constexpr (std::is_base_of_v<D, unique_ptr>) { return *this; }
+//    else { return impl::stateful_deleter<D>::get_deleter(); }
+//  }
+//
+//  D const& get_deleter () const noexcept {
+//    if constexpr (std::is_base_of_v<D, unique_ptr>) { return *this; }
+//    else { return impl::stateful_deleter<D>::get_deleter(); }
+//  }
+//
+//  [[nodiscard]] auto release () noexcept {
+//    return std::exchange(this->ptr, pointer { });
+//  }
+//
+//  void reset (pointer ptr = pointer { }) noexcept {
+//    this->get_deleter()(std::exchange(this->ptr, ptr));
+//  }
+//private:
+//  pointer ptr { };
+//};
+
+// P0468, with more explicit noexcept expressions
 template <class T, class R=retain_traits<T>>
 struct retain_ptr {
-  // TODO: Set these correctly. Swap them up
   using element_type = T;
   using traits_type = R;
-  using pointer = std::add_pointer_t<element_type>;
 
-  using reset_action = traits_type::reset_action;
+  using pointer = detected_or_t<
+    std::add_pointer_t<element_type>,
+    detect::pointer,
+    traits_type
+  >;
+
+  using reset_action = detected_or_t<
+    adopt_t,
+    impl::has_reset_action,
+    traits_type
+  >;
+
+  static_assert(std::disjunction_v<
+    std::is_same<reset_action, retain_t>,
+    std::is_same<reset_action, adopt_t>
+  >);
 
   // TODO: correct noexcept capabilities
   retain_ptr (pointer ptr, retain_t) noexcept(false) :
@@ -107,24 +262,22 @@ private:
 //template <class T> retain_ptr (std::unique_ptr<T>&) -> retain_ptr<T>;
 
 // This is polymorphic_value, but renamed (it's a bit closer to Box<T> from Rust)
-// TODO: maybe just name this box<T>?
+// TODO: maybe just name this to box<T>?
 template <class T> struct value_ptr;
 
-// this is observer_ptr, but renamed
-// TODO: maybe reconsider the name? survey is... odd. view_ptr feels weird,
-// as well.
+// observer_ptr, but with a better name.
 template <class T>
-struct survey_ptr {
+struct spectate_ptr {
   using element_type = T;
   using pointer = std::add_pointer_t<element_type>;
 
-  constexpr survey_ptr  () noexcept = default;
+  constexpr spectate_ptr  () noexcept = default;
 
-  //template <class T> constexpr survey_ptr (survey_ptr<T> that);
-  constexpr survey_ptr (std::nullptr_t) noexcept : survey_ptr { } { };
-  explicit survey_ptr (pointer ptr) noexcept : ptr { ptr } { }
+  //template <class T> constexpr spectate_ptr (spectate_ptr<T> that);
+  constexpr spectate_ptr (std::nullptr_t) noexcept : spectate_ptr { } { };
+  explicit spectate_ptr (pointer ptr) noexcept : ptr { ptr } { }
 
-  survey_ptr& operator = (std::nullptr_t) noexcept {
+  spectate_ptr& operator = (std::nullptr_t) noexcept {
     this->reset();
     return *this;
   }
@@ -135,7 +288,7 @@ struct survey_ptr {
   decltype(auto) operator * () const noexcept { return *this->ptr; }
   auto operator -> () const noexcept { return this->ptr; }
 
-  void swap (survey_ptr& that) noexcept {
+  void swap (spectate_ptr& that) noexcept {
     using std::swap;
     swap(this->ptr, that.ptr);
   }
@@ -151,61 +304,66 @@ private:
   pointer ptr { };
 };
 
+//template <class T, class D>
+//void swap (unique_ptr<T, D>& lhs, unique_ptr<T, D>& rhs) noexcept {
+//  lhs.swap(rhs);
+//}
+
 template <class T, class R>
 void swap (retain_ptr<T, R>& lhs, retain_ptr<T, R>& rhs) noexcept {
   lhs.swap(rhs);
 }
 
 template <class T>
-void swap (survey_ptr<T>& lhs, survey_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
+void swap (spectate_ptr<T>& lhs, spectate_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
 
 template <class T, class U>
-bool operator == (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator == (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() == rhs.get();
 }
 
 template <class T, class U>
-bool operator != (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator != (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() != rhs.get();
 }
 
 template <class T, class U>
-bool operator >= (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator >= (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() >= rhs.get();
 }
 
 template <class T, class U>
-bool operator <= (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator <= (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() <= rhs.get();
 }
 
 template <class T, class U>
-bool operator > (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator > (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() > rhs.get();
 }
 
 template <class T, class U>
-bool operator < (survey_ptr<T> const& lhs, survey_ptr<U> const& rhs) noexcept {
+bool operator < (spectate_ptr<T> const& lhs, spectate_ptr<U> const& rhs) noexcept {
   return lhs.get() < rhs.get();
 }
 
 template <class T>
-bool operator == (survey_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
+bool operator == (spectate_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
   return lhs.get() == nullptr;
 }
 
 template <class T>
-bool operator != (survey_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
+bool operator != (spectate_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
   return lhs.get() != nullptr;
 }
 
 template <class T>
-bool operator == (::std::nullptr_t, survey_ptr<T> const& rhs) noexcept {
+bool operator == (::std::nullptr_t, spectate_ptr<T> const& rhs) noexcept {
   return nullptr == rhs.get();
 }
 
 template <class T>
-bool operator != (::std::nullptr_t, survey_ptr<T> const& rhs) noexcept {
+bool operator != (::std::nullptr_t, spectate_ptr<T> const& rhs) noexcept {
   return nullptr != rhs.get();
 }
 
@@ -226,7 +384,7 @@ constexpr T* to_address (T* p) noexcept {
 // This can't be constexpr under C++17 for a variety of reasons. However we
 // don't really use it in such a manner, so it's fine for what we're doing
 // here.
-#if __cpp_lib_constexpr_dynamic_alloc >= 201907
+#if __cpp_lib_constexpr_dynamic_alloc >= 201907L
 using ::std::construct_at;
 using ::std::destroy_at;
 #else

@@ -100,7 +100,8 @@
   #define APEX_ARCH_UNKNOWN 1
 #endif /* defined(__amd64__) */
 
-// TODO: Handle SIMD detection!
+// TODO: Handle SIMD detection! Will be needed for some neat stuff we can
+// do later 🙂
 
 // TODO: Consider removing these. Just because they're unknown doesn't mean
 // they won't work!
@@ -115,5 +116,14 @@
 #if APEX_ARCH_UNKNOWN
   #error "Unknown architecture detected"
 #endif /* APEX_ARCH_UNKNOWN */
+
+#define APEX_IMPL_STRINGIFY(x) #x
+#define APEX_STRINGIFY(x) APEX_IMPL_STRINGIFY(x)
+
+#define APEX_CONCAT(x, y) APEX_PASTE(x, y)
+#define APEX_PASTE(x, y) x##y
+
+#define APEX_CHECK_API(name, version) (APEX_CONCAT(__cpp_lib_, name) >= APEX_CONCAT(version, L))
+#define APEX_CHECK_CXX(name, version) (APEX_CONCAT(__cpp_, name) >= APEX_CONCAT(version, L))
 
 #endif /* APEX_MACROS_HPP */

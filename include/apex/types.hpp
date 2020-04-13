@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 
-inline namespace apex {
+namespace apex {
 inline namespace v1 {
 
 using std::nullptr_t;
@@ -27,6 +27,8 @@ using u8 = std::uint8_t;
 
 using f64 = double;
 using f32 = float;
+
+struct empty { };
 
 }} /* namespace apex::v1 */
 

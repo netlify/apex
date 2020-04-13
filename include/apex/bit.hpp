@@ -4,8 +4,13 @@
 #include <apex/traits.hpp>
 #include <apex/macros.hpp>
 
+#if __has_include(<bit>)
+  #include <bit>
+#endif /* __has_include(<bit>) */
+
 namespace apex {
 inline namespace v1 {
+#if not APEX_CHECK_API(bit_cast, 201806)
 namespace impl {
 
 /* This is the closest to "we can bit-cast these types" we can get under C++17 */
@@ -21,8 +26,11 @@ constexpr bool can_bit_cast = std::conjunction_v<
 >;
 
 } /* namespace impl */
+#endif /* not APEX_CHECK_API(bit_cast, 201806) */
 
-// TODO: Remove once C++20 is being used.
+#if APEX_CHECK_API(endian, 201907)
+using std::endian;
+#else
 enum class endian {
 #if APEX_SYSTEM_WINDOWS
   little = 0,
@@ -34,6 +42,7 @@ enum class endian {
   native = __BYTE_ORDER__,
 #endif /* APEX_SYSTEM_WINDOWS */
 }
+#endif /* APEX_CHECK_API(endian, 201907) */
 
 // TODO: just make these overloads or something similar
 template <class T, class=std::enable_if_t<std::is_unsigned_v<T>>>
@@ -89,15 +98,18 @@ constexpr int countl_one (T x) { return countl_zero(~x); }
 template <class T, class=std::enable_if_t<std::is_unsigned_v<T>>>
 constexpr int countr_one (T x) { return countr_zero(~x); }
 
-
-template <
-  class To,
-  class From,
-  class=typename std::enable_if<impl::can_bit_cast<To, From>>::type
-> constexpr To bit_cast (From const&) noexcept {
+#if APEX_CHECK_API(bit_cast, 201806)
+using std::bit_cast;
+#else
+template <class To, class From >
+auto bit_cast (From const&) noexcept -> std::enable_if_t<
+  impl::can_bit_cast<To, From>,
+  To
+> {
   std::aligned_storage_t<sizeof(To), alignof(To)> storage;
   return *static_cast<To*>(std::memcpy(&storage, &from, sizeof(To)));
 }
+#endif /* APEX_CHECK_API(bit_cast, 201806) */
 
 // Not part of the standard, but still useful!
 [[noreturn]] constexpr void unreachable () noexcept { __builtin_unreachable(); }

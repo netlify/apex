@@ -1,6 +1,8 @@
 #ifndef APEX_UTILITY_HPP
 #define APEX_UTILITY_HPP
 
+#include <utility>
+
 #include <apex/traits.hpp>
 
 namespace apex {
@@ -9,7 +11,7 @@ inline namespace v1 {
 using std::declval;
 
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template <class... Ts> overloaded -> overloaded<Ts...>;
+template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 template <class T>
 constexpr auto to_underlying (T value) noexcept -> typename std::enable_if<
@@ -25,7 +27,7 @@ constexpr auto to_underlying (T value) noexcept -> typename std::enable_if<
  */
 template <
   class T,
-  class=typename std::enable_if_t<
+  class=typename std::enable_if<
     std::conjunction_v<
       std::is_member_object_pointer<T>,
       std::is_standard_layout<class_of_t<T>>
@@ -44,6 +46,7 @@ template <
   std::memcpy(&value, &member, sizeof(value));
   return value;
 }
+
 
 }} /* namespace apex::v1 */
 
