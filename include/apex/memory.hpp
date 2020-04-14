@@ -368,7 +368,7 @@ bool operator != (::std::nullptr_t, spectate_ptr<T> const& rhs) noexcept {
 }
 
 /* shim definitions */
-#if __cpp_lib_to_address >= 201711L
+#if APEX_CHECK_API(to_address, 201711)
 using ::std::to_address;
 #else
 template <class T>
@@ -379,12 +379,12 @@ constexpr T* to_address (T* p) noexcept {
   static_assert(not std::is_function_v<T>);
   return p;
 }
-#endif /* __cpp_lib_to_address >= 201711L */
+#endif /* APEX_CHECK_API(to_address, 201711) */
 
 // This can't be constexpr under C++17 for a variety of reasons. However we
 // don't really use it in such a manner, so it's fine for what we're doing
 // here.
-#if __cpp_lib_constexpr_dynamic_alloc >= 201907L
+#if APEX_CHECK_API(constexpr_dynamic_alloc, 201907)
 using ::std::construct_at;
 using ::std::destroy_at;
 #else
@@ -403,7 +403,7 @@ auto construct_at (T* location, Args&&... args) noexcept(std::is_nothrow_constru
     return ::new (static_cast<void*>(location)) T(std::forward<Args>(args)...);
   }
 }
-#endif /* __cpp_lib_constexpr_dynamic_alloc */
+#endif /* APEX_CHECK_API(constexpr_dynamic_alloc, 201907) */
 
 }} /* namespace apex::v1 */
 

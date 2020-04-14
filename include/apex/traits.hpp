@@ -3,6 +3,7 @@
 
 #include <type_traits>
 
+#include <apex/macros.hpp>
 #include <apex/detect.hpp>
 #include <apex/types.hpp>
 
@@ -10,15 +11,15 @@ namespace apex {
 inline namespace v1 {
 
 /* shim section */
-#if __cpp_lib_type_identity >= 201806L
+#if APEX_CHECK_API(type_identity, 201806)
   using ::std::type_identity_t;
   using ::std::type_identity;
 #else
   template <class T> struct type_identity { using type = T; };
   template <class T> using type_identity_t = typename type_identity<T>::type;
-#endif /* __cpp_lib_type_identity */
+#endif /* APEX_CHECK_API(type_identity, 201806) */
 
-#if __cpp_lib_remove_cvref >= 201711L
+#if APEX_CHECK_API(remove_cvref, 201711)
   using ::std::remove_cvref_t;
   using ::std::remove_cvref;
 #else
@@ -27,9 +28,9 @@ inline namespace v1 {
     std::remove_cv_t<std::remove_reference_t<T>>
   > { };
   template <class T> using remove_cvref_t = typename remove_cvref<T>::type;
-#endif /* __cpp_lib_remove_cvref */
+#endif /* APEX_CHECK_API(remove_cvref, 201711) */
 
-#if __cpp_lib_bounded_array_traits >= 201902L
+#if APEX_CHECK_API(bounded_array_traits, 201902)
   using ::std::is_unbounded_array;
   using ::std::is_bounded_array;
 
@@ -43,7 +44,7 @@ inline namespace v1 {
   template <class> struct is_bounded_array : std::false_type { };
   template <class T, std::size_t N> struct is_bounded_array<T[N]> : std::true_type { };
   template <class T> inline constexpr bool is_bounded_array_v = is_bounded_array<T>::value;
-#endif /* __cpp_lib_bounded_array_traits >= 201902L */
+#endif /* APEX_CHECK_API(bounded_array_traits, 201902) */
 
 template <class T, class, template <class...> class, class...>
 struct detector : type_identity<T> { using value_t = std::false_type; };
@@ -106,6 +107,8 @@ inline constexpr auto is_complete_v = is_complete<T>::value;
 
 template <auto V>
 inline constexpr auto constant = std::integral_constant<decltype(V), V> { };
+
+template <class... Ts> inline constexpr auto always_false = false;
 
 }} /* namespace apex::v1 */
 
