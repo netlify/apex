@@ -15,21 +15,19 @@ inline namespace v1 {
 // Doing it "the correct way" will increase the amount of work needed.
 template <class F, class... Args>
 constexpr auto bind_front (F&& f, Args&&... args) {
-  static_assert((std::is_move_constructible_v<std::decay_t<Args>, Args> and ...));
+  static_assert((std::is_move_constructible_v<std::decay_t<Args>> and ...));
   static_assert((std::is_constructible_v<std::decay_t<Args>, Args> and ...));
   static_assert(std::is_move_constructible_v<std::decay_t<F>>);
-  static_assert(std::is_constructible_v<std::decay_t<F>>);
+  static_assert(std::is_constructible_v<std::decay_t<F>, F>);
   return [
-    f = std::forward<F>(f)
+    f = std::forward<F>(f),
     bound = std::tuple<std::decay_t<Args>...>(std::forward<Args>(args)...)
-  ] (auto&&... args) {
-    return std::apply(
-      std::forward<F>(f),
-      std::tuple_cat(
-        bound,
-        std::forward_as_tuple(std::forward<decltype(args)>(args)...)
-      )
-    );
+  ] (auto&&... args) constexpr {
+      return std::apply(
+        f,
+        std::tuple_cat(
+          bound,
+          std::forward_as_tuple(std::forward<decltype(args)>(args)...)));
   };
 }
 
@@ -62,7 +60,7 @@ struct function_ref<R(Args...)> {
 
   constexpr function_ref& operator = (function_ref const&) noexcept = default;
 
-  template <class F, class=std::enable_if_t<is_constructible<F>>
+  template <class F, class=std::enable_if_t<is_constructible<F>>>
   constexpr function_ref& operator = (F&& f) noexcept {
     this->callback = [] (void* ptr, Args... args) -> R {
       return std::invoke(
@@ -115,7 +113,7 @@ struct function_ref<R(Args...) noexcept> {
 
   constexpr function_ref& operator = (function_ref const&) noexcept = default;
 
-  template <class F, class=std::enable_if_t<is_constructible<F>>
+  template <class F, class=std::enable_if_t<is_constructible<F>>>
   constexpr function_ref& operator = (F&& f) noexcept {
     this->callback = [] (void* ptr, Args... args) noexcept -> R{
       return std::invoke(
