@@ -2,6 +2,7 @@
 #define APEX_CORE_UTILITY_HPP
 
 #include <utility>
+#include <cstring>
 
 #include <apex/core/traits.hpp>
 
@@ -15,8 +16,9 @@ template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 template <class T>
 constexpr auto to_underlying (T value) noexcept -> typename std::enable_if<
-  std::is_enum_v<T>
-> { return static_cast<std::underlying_type_t<T>>(value); }
+  std::is_enum_v<T>,
+  std::underlying_type_t<T>
+>::type { return static_cast<std::underlying_type_t<T>>(value); }
 
 // NOTE: The paper this is for has undergone some feedback, including a new
 // name that the author wasn't present for and couldn't defend. We're sticking
