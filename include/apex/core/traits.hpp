@@ -5,10 +5,19 @@
 
 #include <apex/core/macros.hpp>
 #include <apex/core/types.hpp>
+
 #include <apex/detect/types.hpp>
 
 namespace apex {
 inline namespace v1 {
+
+using ::std::conjunction;
+using ::std::disjunction;
+using ::std::negation;
+
+using ::std::conjunction_v;
+using ::std::disjunction_v;
+using ::std::negation_v;
 
 /* shim section */
 #if APEX_CHECK_API(type_identity, 201806)
@@ -104,6 +113,15 @@ struct is_complete :
 
 template <class T>
 inline constexpr auto is_complete_v = is_complete<T>::value;
+
+template <class, template <class...> class>
+struct is_specialization_of : std::false_type { };
+
+template <template <class...> class T, class... Args>
+struct is_specialization_of<T<Args...>, T> : std::true_type { };
+
+template <class T, template <class...> class U>
+inline constexpr auto is_specialization_of_v = is_specialization_of<T, U> { };
 
 template <auto V>
 inline constexpr auto constant = std::integral_constant<decltype(V), V> { };

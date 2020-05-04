@@ -66,7 +66,9 @@ private:
 
 } /* namespace impl */
 
-// TODO: add the span(R&&) constructor
+template <class> struct is_span : std::false_type { };
+template <class T, size_t N> struct is_span<span<T, N>> : std::true_type { };
+
 template <class T, size_t Extent>
 struct span {
   static_assert(not std::is_abstract_v<T>);
@@ -136,7 +138,14 @@ struct span {
     class R,
     class=std::enable_if_t<
       std::conjunction_v<
-        std::negation<std::is_same<span, remove_cvref_t<R>>>,
+        std::negation<
+          std::disjunction<
+            std::is_same<span, remove_cvref_t<R>>>,
+            std::is_array<remove_cvref_t<R>>,
+            is_std_array<remove_cvref_t<R>>,
+            is_span<remove_cvref_t<R>>
+          >
+        >,
         is_detected_convertible<size_type, detect::iter::size, R>,
         is_detected_convertible<pointer, detect::iter::data, R>
       >

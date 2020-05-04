@@ -62,7 +62,7 @@ struct outcome final {
   }
 
   outcome (outcome&& that) :
-    valid { taht.valid }
+    valid { that.valid }
   {
     if (*this) { construct_at(std::addressof(this->success), std::move(that.success)); }
     else { construct_at(std::addressof(this->failure), std::move(that.failure)); }
