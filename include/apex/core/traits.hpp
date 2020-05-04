@@ -3,9 +3,9 @@
 
 #include <type_traits>
 
-#include <apex/macros.hpp>
-#include <apex/detect.hpp>
-#include <apex/types.hpp>
+#include <apex/core/macros.hpp>
+#include <apex/core/types.hpp>
+#include <apex/detect/types.hpp>
 
 namespace apex {
 inline namespace v1 {
@@ -99,7 +99,7 @@ inline constexpr auto is_empty_base_v = is_empty_base<T>::value;
 
 template <class T>
 struct is_complete :
-  is_detected<detect::complete, T>
+  is_detected<detect::types::complete, T>
 { };
 
 template <class T>

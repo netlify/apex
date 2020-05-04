@@ -1,11 +1,12 @@
-#ifndef APEX_CONCURRENCY_HPP
-#define APEX_CONCURRENCY_HPP
+#ifndef APEX_CONCURRENCY_SYNCHRONIZED_HPP
+#define APEX_CONCURRENCY_SYNCHRONIZED_HPP
 
 #include <functional>
+#include <thread>
+#include <array>
 #include <mutex>
 
-namespace apex {
-inline namespace v1 {
+namespace apex::concurrency {
 
 // TODO: implement a thread type that works much like std::thread, but also
 // supports operations like the proposed std::thread::attributes (and other
@@ -35,8 +36,6 @@ private:
   value_type val;
 };
 
+} /* namespace apex::concurrency */
 
-
-}} /* namespace apex::v1 */
-
-#endif /* APEX_CONCURRENCY_HPP */
+#endif /* APEX_CONCURRENCY_SYNCHRONIZED_HPP */

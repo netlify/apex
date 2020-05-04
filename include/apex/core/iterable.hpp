@@ -1,12 +1,18 @@
-#ifndef APEX_ITERABLE_HPP
-#define APEX_ITERABLE_HPP
+#ifndef APEX_CORE_ITERABLE_HPP
+#define APEX_CORE_ITERABLE_HPP
 
 #include <iterator>
 
-// Sort of like a range type, but it is not type erased. This is a simpler form
-// of a C++20 ranges API, but it's more so you can easily construct ranges for
-// use from old iterator pairs with little effort.
+// Allows us to turn any 'range' into some iterable object. This differs from
+// C++20 ranges, but it's meant to be here as a temporary workaround until
+// we actually have access to them. That said, this has a bit of a different
+// API than existing range-like interfaces. Effectively, every iterable<I, S>
+// is itself an iterator.
 
+namespace apex {
+inline namespace v1 {
+
+// TODO: add detection calls for std::begin|std::end/T.begin()|T.end()
 template <class I, class S=I>
 struct iterable final {
   using iterator = I;
@@ -18,6 +24,7 @@ struct iterable final {
     stop { std::forward<T>(stop) }
   { }
 
+  // make conditionally noexcept!
   void swap (iterable& that) noexcept {
     using std::swap;
     swap(this->start, that.start);
@@ -25,20 +32,19 @@ struct iterable final {
   }
 
   explicit operator bool () const noexcept { return this->start != this->stop; }
-
   decltype(auto) operator * () const noexcept { return *this->start; }
   auto operator -> () const noexcept { return std::addressof(**this); }
 
   iterable operator ++ (int) { return iterable(this->start++, this->stop); }
-  iterable& operator ++ () noexcept { return ++this->this; return *this; }
+  iterable& operator ++ () noexcept { return ++this->start; return *this; }
 
   iterator begin () const noexcept { return this->start; }
   sentinel end () const noexcept { return this->stop; }
 
   auto reverse () const noexcept {
     return iterable {
-      std::make_reverse_iterator(this->stop),
-      std::make_reverse_iterator(this->start)
+      std::make_reverse_iterator(this->end()--),
+      std::make_reverse_iterator(this->begin()--)
     };
   }
 private:
@@ -48,12 +54,12 @@ private:
     return begin(std::forward<R>(range));
   }
 
-  template <class R>
+  template <class T>
   static end (R&& range) {
     using std::end;
     return end(std::forward<R>(range));
   }
-
+private:
   iterator start;
   sentinel stop;
 };
@@ -61,4 +67,6 @@ private:
 template <class I, class S>
 void swap (iterable<I, S>& lhs, iterable<I, S>& rhs) noexcept { lhs.swap(rhs); }
 
-#endif /* APEX_ITERABLE_HPP */
+}} /* namespace apex::v1 */
+
+#endif /* APEX_CORE_ITERABLE_HPP */

@@ -1,12 +1,13 @@
-#ifndef APEX_SPAN_HPP
-#define APEX_SPAN_HPP
+#ifndef APEX_CORE_SPAN_HPP
+#define APEX_CORE_SPAN_HPP
 
-#include <apex/memory.hpp>
-#include <apex/traits.hpp>
-#include <apex/types.hpp>
-#include <apex/array.hpp>
+#include <apex/core/traits.hpp>
+#include <apex/core/macros.hpp>
+#include <apex/core/types.hpp>
 
-#include <apex/macros.hpp>
+#include <apex/container/array.hpp>
+
+#include <apex/detect/iter.hpp>
 
 #include <iterator>
 #include <limits>
@@ -132,6 +133,19 @@ struct span {
   { }
 
   template <
+    class R,
+    class=std::enable_if_t<
+      std::conjunction_v<
+        std::negation<std::is_same<span, remove_cvref_t<R>>>,
+        is_detected_convertible<size_type, detect::iter::size, R>,
+        is_detected_convertible<pointer, detect::iter::data, R>
+      >
+    >
+  > constexpr span (R&& r) noexcept :
+    span { std::data(std::forward<R>(r)), std::size(std::forward<R>(r)) }
+  { }
+
+  template <
     class U,
     size_t N,
     class=std::enable_if_t<safe_extent<N> and not std::is_same_v<U, T>>
@@ -247,4 +261,4 @@ void swap (span<T, N>& lhs, span<T, N>& rhs) noexcept { lhs.swap(rhs); }
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_SPAN_HPP */
+#endif /* APEX_CORE_SPAN_HPP */

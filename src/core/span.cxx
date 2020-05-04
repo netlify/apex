@@ -1,4 +1,4 @@
-#include <apex/span.hpp>
+#include <apex/core/span.hpp>
 
 namespace apex {
 inline namespace v1 {

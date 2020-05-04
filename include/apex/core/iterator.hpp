@@ -1,5 +1,5 @@
-#ifndef APEX_ITERATOR_HPP
-#define APEX_ITERATOR_HPP
+#ifndef APEX_CORE_ITERATOR_HPP
+#define APEX_CORE_ITERATOR_HPP
 
 namespace apex {
 inline namespace v1 {
@@ -14,4 +14,6 @@ template <
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_ITERATOR_HPP */
+
+
+#endif /* APEX_CORE_ITERATOR_HPP */

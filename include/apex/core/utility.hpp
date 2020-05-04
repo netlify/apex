@@ -1,9 +1,9 @@
-#ifndef APEX_UTILITY_HPP
-#define APEX_UTILITY_HPP
+#ifndef APEX_CORE_UTILITY_HPP
+#define APEX_CORE_UTILITY_HPP
 
 #include <utility>
 
-#include <apex/traits.hpp>
+#include <apex/core/traits.hpp>
 
 namespace apex {
 inline namespace v1 {
@@ -21,8 +21,9 @@ constexpr auto to_underlying (T value) noexcept -> typename std::enable_if<
 // NOTE: The paper this is for has undergone some feedback, including a new
 // name that the author wasn't present for and couldn't defend. We're sticking
 // with offset_to. Additionally, it wasn't given a specific header/module
-// location. For this reason, it's placed inside the <apex/utility.hpp> header
-/* This is relies on implementation specific behavior.
+// location. For this reason, it's placed inside the <apex/core/utility.hpp> header
+/*
+ * This is relies on implementation specific behavior.
  * We assume Windows/macOS/Linux ABIs
  */
 template <
@@ -50,4 +51,5 @@ template <
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_UTILITY_HPP */
+
+#endif /* APEX_CORE_UTILITY_HPP */

@@ -1,7 +1,7 @@
-#ifndef APEX_FUNCTIONAL_HPP
-#define APEX_FUNCTIONAL_HPP
+#ifndef APEX_CORE_FUNCTIONAL_HPP
+#define APEX_CORE_FUNCTIONAL_HPP
 
-#include <apex/traits.hpp>
+#include <apex/core/traits.hpp>
 
 #include <functional>
 #include <tuple>
@@ -153,4 +153,6 @@ function_ref (R (*)(Args...) noexcept) -> function_ref<R(Args...) noexcept>;
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_FUNCTIONAL_HPP */
+
+
+#endif /* APEX_CORE_FUNCTIONAL_HPP */

@@ -1,5 +1,5 @@
-#ifndef APEX_MACROS_HPP
-#define APEX_MACROS_HPP
+#ifndef APEX_CORE_MACROS_HPP
+#define APEX_CORE_MACROS_HPP
 
 /* This header is where we do a bunch of macro checking for platform related
  * preprocessor defines and a few headers. We try to be complete, regardless of
@@ -126,4 +126,4 @@
 #define APEX_CHECK_API(name, version) (APEX_CONCAT(__cpp_lib_, name) >= APEX_CONCAT(version, L))
 #define APEX_CHECK_CXX(name, version) (APEX_CONCAT(__cpp_, name) >= APEX_CONCAT(version, L))
 
-#endif /* APEX_MACROS_HPP */
+#endif /* APEX_CORE_MACROS_HPP */

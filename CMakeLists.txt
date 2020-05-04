@@ -15,7 +15,7 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   option(APEX_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
 endif()
 
-file(GLOB sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 add_library(apex)
 add_library(netlify::apex ALIAS apex)

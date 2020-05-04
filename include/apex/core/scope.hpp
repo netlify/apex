@@ -1,5 +1,5 @@
-#ifndef APEX_SCOPE_HPP
-#define APEX_SCOPE_HPP
+#ifndef APEX_CORE_SCOPE_HPP
+#define APEX_CORE_SCOPE_HPP
 
 #include <exception>
 #include <limits>
@@ -13,7 +13,7 @@ struct scope_exit_policy {
 protected:
   constexpr bool should_execute () const noexcept { return this->execute; }
 private:
-  bool execute { true; }
+  bool execute { true };
 };
 
 struct scope_success_policy {
@@ -22,6 +22,7 @@ protected:
   bool should_execute () const noexcept {
     this->errors >= std::uncaught_exceptions();
   }
+private:
   int errors { std::uncaught_exceptions() };
 };
 
@@ -31,15 +32,19 @@ protected:
   bool should_execute () const noexcept {
     return this->errors < std::uncaught_exceptions();
   }
+private:
+  int errors { };
 };
 
 } /* namespace impl */
 
 template <class Fn, class Policy>
 struct basic_scope_exit : Policy {
+  using policy_type = Policy;
+
   template <class F>
   basic_scope_exit (F&& function) noexcept :
-    Policy { },
+    policy_type { },
     function { std::forward<F>(function) }
   { }
 
@@ -54,7 +59,7 @@ struct basic_scope_exit : Policy {
     if (this->should_execute()) { std::invoke(this->function); }
   }
 
-  using Policy::release;
+  using policy_type::release;
 
 private:
   Fn function;
@@ -81,4 +86,4 @@ template <class Fn> scope_exit (Fn&&) -> scope_exit<Fn>;
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_SCOPE_HPP */
+#endif /* APEX_CORE_SCOPE_HPP */

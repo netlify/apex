@@ -1,5 +1,5 @@
-#ifndef APEX_TYPES_HPP
-#define APEX_TYPES_HPP
+#ifndef APEX_CORE_TYPES_HPP
+#define APEX_CORE_TYPES_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -32,4 +32,4 @@ struct empty { };
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_TYPES_HPP */
+#endif /* APEX_CORE_TYPES_HPP */

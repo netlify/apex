@@ -1,14 +1,13 @@
-#ifndef APEX_OUTCOME_HPP
-#define APEX_OUTCOME_HPP
-
-#include <type_traits>
-#include <memory>
+#ifndef APEX_CORE_OUTCOME_HPP
+#define APEX_CORE_OUTCOME_HPP
 
 namespace apex {
 inline namespace v1 {
 
-// TODO: make as noexcept as possible
-// TODO: Add monadic operations.
+// TODO: This needs a once over to make everything noexcept-clean
+// TODO: There *does* need to be a specialization for references, because
+// we can currently construct an outcome<int&, std::string> with an rvalue
+// TODO: do we want to permit things like outcome<int, int>?
 template <class T, class E>
 struct outcome final {
 
@@ -17,6 +16,7 @@ struct outcome final {
     std::reference_wrapper<T>,
     T
   >;
+
   using failure_type = std::conditional_t<
     std::is_lvalue_reference_v<E>,
     std::reference_wrapper<E>,
@@ -27,31 +27,31 @@ struct outcome final {
   using error_type = E;
 
   template <class... Args>
-  outcome (in_place_type<value_type>, Args&&... args) :
+  outcome (in_place_type_t<value_type>, Args&&... args) :
     state { true },
     success { std::forward<Args>(args)... }
   { }
 
   template <class... Args>
-  outcome (in_place_type<error_type>, Args&&... args) :
-    state { false },
+  outcome (in_place_type_t<error_type>, Args&&... args) :
+    state { false }
     failure { std::forward<Args>(args)... }
   { }
 
   outcome (value_type const& value) :
-    outcome { in_place<value_type>, value }
+    outcome { in_place_type<value_type>, value }
   { }
 
   outcome (value_type&& value) :
-    outcome { in_place<value_type>, std::move(value) }
+    outcome { in_place_type<value_type>, std::move(value) }
   { }
 
   outcome (error_type const& error) :
-    outcome { in_place<error_type>, error }
+    outcome { in_place_type<error_type>, error }
   { }
 
   outcome (error_type&& error) :
-    outcome { in_place<error_type>, std::move(error) }
+    outcome { in_place_type<error_type>, std::move(error) }
   { }
 
   outcome (outcome const& that) :
@@ -121,10 +121,10 @@ struct outcome final {
   value_type& operator -> () const noexcept { return std::addressof(**this); }
 
   error_type const& error () const noexcept { return this->failure; }
-  error_type& error () const noexcept { return this->failure; }
+  error_type& error () noexcept { return this->failure; }
 
   template <class... Args>
-  void emplace(Args&&... args) {
+  void emplace (Args&&... args) {
     this->clear();
     construct_at(std::addressof(this->success), std::forward<Args>(args)...);
     this->valid = true;
@@ -152,4 +152,4 @@ private:
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_OUTCOME_HPP */
+#endif /* APEX_CORE_OUTCOME_HPP */

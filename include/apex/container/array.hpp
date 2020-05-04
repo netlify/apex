@@ -1,19 +1,16 @@
-#ifndef APEX_ARRAY_HPP
-#define APEX_ARRAY_HPP
-
-#include <apex/macros.hpp>
+#ifndef APEX_CONTAINER_ARRAY_HPP
+#define APEX_CONTAINER_ARRAY_HPP
 
 #include <array>
 
-#if not APEX_CHECK_API(to_array, 201907)
-#include <functional>
-#endif /* not APEX_CHECK_API(to_array, 201907) */
-
+#if __cpp_lib_to_array < 201907L
+  #include <functional>
+#endif /* __cpp_lib_to_array < 201907L */
 
 namespace apex {
 inline namespace v1 {
 
-#if APEX_CHECK_API(to_array, 201907)
+#if __cpp_lib_to_array >= 201907L
 using std::to_array;
 #else
 template <class T, std::size_t N>
@@ -31,8 +28,8 @@ constexpr std::array<std::remove_cv_t<T>, N> to_array (T (&&a)[N]) {
   };
   return std::apply(function, a);
 }
-#endif /* APEX_CHECK_API(to_array) */
+#endif /* __cpp_lib_to_array >= 201907L */
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_ARRAY_HPP */
+#endif /* APEX_CONTAINER_ARRAY_HPP */

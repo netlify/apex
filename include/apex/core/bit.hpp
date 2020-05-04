@@ -1,8 +1,8 @@
-#ifndef APEX_BIT_HPP
-#define APEX_BIT_HPP
+#ifndef APEX_CORE_BIT_HPP
+#define APEX_CORE_BIT_HPP
 
-#include <apex/traits.hpp>
-#include <apex/macros.hpp>
+#include <apex/core/traits.hpp>
+#include <apex/core/macros.hpp>
 
 #if __has_include(<bit>)
   #include <bit>
@@ -116,4 +116,4 @@ auto bit_cast (From const&) noexcept -> std::enable_if_t<
 
 }} /* namespace apex::v1 */
 
-#endif /* APEX_BIT_HPP */
+#endif /* APEX_CORE_BIT_HPP */
