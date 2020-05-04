@@ -17,21 +17,38 @@ struct optional final {
   template <class... Args>
   static constexpr auto constructible_from = std::is_constructible_v<T, Args...>;
 
+  using value_type = T;
+
   template <class... Args, class=std::enable_if_t<constructible_from<Args...>>>
   optional (in_place_t, Args&&... args) noexcept(nothrow_constructible<Args...>) :
     valid(true)
   { construct_at(std::addressof(this->value), std::forward<Args>(args)...); }
+
+  optional (optional const&) = default;
+
+  void swap (optional& that) noexcept(std::is_nothrow_swappable<T>) {
+    using std::swap;
+    if (not *this and not that) { return; }
+    if (*this and *that) { swap(**this, *that); }
+  }
 
   explicit operator bool () const noexcept { return this->valid; }
 
   decltype(auto) operator * () const noexcept { return *this->value; }
   auto operator -> () const noexcept { return std::addressof(this->value); }
 
+  void reset () noexcept {
+    if (*this) {
+      destroy_at(this->value);
+      this->valid = false;
+    }
+  }
+
   template <class... Args>
   auto emplace (Args&&... args) noexcept(nothrow_constructible<Args...>) -> std::enable_if_t<
     constructible_from<Args...>
   > {
-    if (*this) { std::destroy_at(std::addressof(this->value)); }
+    if (*this) { destroy_at(std::addressof(this->value)); }
     construct_at(std::addressof(this->value), std::forward<Args>(args)...);
   }
 
@@ -72,6 +89,8 @@ struct optional<T&> final {
 private:
   storage_type value { };
 };
+
+template <class T> optional(T) -> optional<T>;
 
 }} /* namespace apex::v1 */
 

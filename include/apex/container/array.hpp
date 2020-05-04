@@ -32,13 +32,6 @@ constexpr std::array<std::remove_cv_t<T>, N> to_array (T (&&a)[N]) {
 }
 #endif /* APEX_CHECK_API(to_array, 201907) */
 
-template <class> struct is_std_array : std::false_type { };
-template <class T, size_t N>
-struct is_std_array<std::array<T, N>> : true_type { };
-
-template <class T>
-inline constexpr is_std_array_v = is_std_array<T> { };
-
 }} /* namespace apex::v1 */
 
 #endif /* APEX_CONTAINER_ARRAY_HPP */

@@ -123,6 +123,12 @@ struct is_specialization_of<T<Args...>, T> : std::true_type { };
 template <class T, template <class...> class U>
 inline constexpr auto is_specialization_of_v = is_specialization_of<T, U> { };
 
+template <class, template <class, size_t> class>
+struct is_bounded_specialization_of : std::false_type { };
+
+template <template <class, size_t> class T, class U, size_t N>
+struct is_bounded_specialization_of<T<U, N>, T> : std::true_type { };
+
 template <auto V>
 inline constexpr auto constant = std::integral_constant<decltype(V), V> { };
 

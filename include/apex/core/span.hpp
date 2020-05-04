@@ -140,10 +140,9 @@ struct span {
       std::conjunction_v<
         std::negation<
           std::disjunction<
-            std::is_same<span, remove_cvref_t<R>>>,
             std::is_array<remove_cvref_t<R>>,
-            is_std_array<remove_cvref_t<R>>,
-            is_span<remove_cvref_t<R>>
+            is_bounded_specialization_of<remove_cvref_t<R>, std::array>,
+            is_bounded_specialization_of<remove_cvref_t<R>, span>
           >
         >,
         is_detected_convertible<size_type, detect::iter::size, R>,

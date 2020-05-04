@@ -1,6 +1,7 @@
 #ifndef APEX_CORE_SCOPE_HPP
 #define APEX_CORE_SCOPE_HPP
 
+#include <functional>
 #include <exception>
 #include <limits>
 
@@ -20,7 +21,7 @@ struct scope_success_policy {
   void release () noexcept { this->errors = -1; }
 protected:
   bool should_execute () const noexcept {
-    this->errors >= std::uncaught_exceptions();
+    return this->errors >= std::uncaught_exceptions();
   }
 private:
   int errors { std::uncaught_exceptions() };
@@ -75,7 +76,7 @@ struct scope_success final :
   basic_scope_exit<Fn, impl::scope_success_policy>
 { };
 
-template ,class Fn>
+template <class Fn>
 struct scope_exit final :
   basic_scope_exit<Fn, impl::scope_exit_policy>
 { };

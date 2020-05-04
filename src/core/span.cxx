@@ -1,4 +1,5 @@
 #include <apex/core/span.hpp>
+#include <vector>
 
 namespace apex {
 inline namespace v1 {
