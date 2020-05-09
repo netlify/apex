@@ -20,6 +20,11 @@ struct view_ptr {
     return *this;
   }
 
+  view_ptr& operator = (pointer ptr) noexcept {
+    this->reset(ptr);
+    return *this;
+  }
+
   explicit operator pointer () const noexcept { return this->ptr; }
   explicit operator bool () const noexcept { return this->ptr; }
 
@@ -41,6 +46,8 @@ struct view_ptr {
 private:
   pointer ptr { };
 };
+
+template <class T> view_ptr(T*) -> view_ptr<T>;
 
 template <class T>
 void swap (view_ptr<T>& lhs, view_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
