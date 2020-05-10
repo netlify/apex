@@ -26,6 +26,16 @@ struct arguments final {
   arguments (int, char const* const*) noexcept;
   arguments () noexcept = delete;
 
+  // TODO: return an outcome<value_type, errors::out_of_range> instead
+  value_type operator [] (size_type) const noexcept;
+  value_type at (size_type) const noexcept(false);
+
+  reverse_iterator rbegin () const noexcept;
+  reverse_iterator rend () const noexcept;
+
+  iterator begin () const noexcept;
+  iterator end () const noexcept;
+
   [[nodiscard]] bool empty() const noexcept;
   size_type size () const noexcept;
 

@@ -26,6 +26,33 @@ arguments::arguments (int count, char const* const* entries) noexcept :
   count { count }
 { }
 
+arguments::value_type arguments::operator [] (size_type idx) const noexcept {
+  return this->entries[idx];
+}
+
+arguments::value_type arguments::at (size_type idx) const noexcept(false) {
+  if (idx >= this->size()) {
+    throw std::out_of_range("apex::runtime::arguments");
+  }
+  return this->entries[idx];
+}
+
+arguments::reverse_iterator arguments::rbegin () const noexcept {
+  return reverse_iterator { this->end() - 1 };
+}
+
+arguments::reverse_iterator arguments::rend () const noexcept {
+  return reverse_iterator { this->begin() - 1 };
+}
+
+arguments::iterator arguments::begin () const noexcept {
+  return this->entries;
+}
+
+arguments::iterator arguments::end () const noexcept {
+  return this->begin()  + this->argc();
+}
+
 bool arguments::empty () const noexcept {
   return this->size();
 }

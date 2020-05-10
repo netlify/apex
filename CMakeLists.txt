@@ -10,6 +10,7 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(CheckCXXCompilerFlag)
 
 include(CMakeDependentOption)
+include(CMakePushCheckState)
 include(GNUInstallDirs)
 include(FetchContent)
 include(CTest)
@@ -27,6 +28,13 @@ check_cxx_compiler_flag(-Wpedantic CAN_WARN_PEDANTIC)
 check_cxx_compiler_flag(-Wextra CAN_WARN_EXTRA)
 check_cxx_compiler_flag(-Wall CAN_WARN_DEFAULT)
 
+check_cxx_compiler_flag(-mavx2 CAN_USE_MODE_AVX2)
+
+cmake_push_check_state()
+set(CMAKE_REQUIRED_LINK_OPTIONS -fsanitize=address)
+check_cxx_compiler_flag(-fsanitize=address CAN_SANITIZE_ADDRESS)
+cmake_pop_check_state()
+
 set(--warn-strict-aliasing $<$<BOOL:${CAN_WARN_STRICT_ALIASING}>:-Wstrict-aliasing>)
 set(--warn-uninitialized $<$<BOOL:${CAN_WARN_UNINITIALIZED}>:-Wuninitialized>)
 set(--warn-useless-cast $<$<BOOL:${CAN_WARN_USELESS_CAST}>:-Wuseless-cast>)
@@ -35,16 +43,22 @@ set(--warn-pedantic $<$<BOOL:${CAN_WARN_PEDANTIC}>:-Wpedantic>)
 set(--warn-default $<$<BOOL:${CAN_WARN_DEFAULT}>:-Wall>)
 set(--warn-extra $<$<BOOL:${CAN_WARN_EXTRA}>:-Wextra>)
 
+set(--sanitize-address $<$<BOOL:${CAN_SANITIZE_ADDRESS}>:-fsanitize=address>)
+set(--use-mode-avx2 $<$<BOOL:${CAN_USE_MODE_AVX2}>:-mavx2>)
+
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 add_library(apex)
 add_library(netlify::apex ALIAS apex)
 target_compile_features(apex PRIVATE cxx_std_17)
 target_compile_options(apex
+  PUBLIC
+    ${--use-mode-avx2}
   PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
     $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
     $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+    $<$<CONFIG:Debug>:${--sanitize-address}>
     ${--warn-strict-aliasing}
     ${--warn-uninitalized}
     ${--warn-useless-cast}
@@ -100,6 +114,7 @@ if (APEX_BUILD_TESTS)
       $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
       $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
     PUBLIC
+      ${--sanitize-address}
       ${--warn-strict-aliasing}
       ${--warn-uninitalized}
       ${--warn-useless-cast}
@@ -107,6 +122,9 @@ if (APEX_BUILD_TESTS)
       ${--warn-pedantic}
       ${--warn-default}
       ${--warn-extra})
+  target_link_options(${target}
+    PUBLIC
+      ${--sanitize-address})
 
   file(GLOB_RECURSE sources
     RELATIVE "${PROJECT_SOURCE_DIR}/tests"
