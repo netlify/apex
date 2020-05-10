@@ -79,8 +79,8 @@ using is_detected = typename detected_or<undefined, T, Args...>::value_t;
 template <template <class...> class T, class... Args>
 using detected_t = typename detected_or<undefined, T, Args...>::type;
 
-template <class T, template <class...> class U, class... Args>
-using detected_or_t = typename detected_or<T, U, Args...>::type;
+template <class Default, template <class...> class Op, class... Args>
+using detected_or_t = typename detected_or<Default, Op, Args...>::type;
 
 template <class To, template <class...> class T, class... Args>
 using is_detected_convertible = std::is_convertible<

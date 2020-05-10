@@ -1,4 +1,4 @@
-#include <apex/os/session.hpp>
+#include <apex/runtime/session.hpp>
 
 namespace {
 
@@ -13,7 +13,7 @@ int argc { };
 
 } /* nameless namespace */
 
-namespace apex::os {
+namespace apex::runtime {
 
 arguments const& args () noexcept {
   static arguments instance { ::argc, ::argv };
@@ -33,4 +33,4 @@ arguments::size_type arguments::size() const noexcept {
   return this->argc;
 };
 
-} /* namespace apex::os */
+} /* namespace apex::runtime */

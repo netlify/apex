@@ -1,5 +1,5 @@
-#ifndef APEX_OS_SESSION_HPP
-#define APEX_OS_SESSION_HPP
+#ifndef APEX_RUNTIME_SESSION_HPP
+#define APEX_RUNTIME_SESSION_HPP
 
 #include <string_view>
 #include <iterator>
@@ -8,7 +8,7 @@
 
 // slightly modified implementation of P1275
 
-namespace apex::os {
+namespace apex::runtime {
 
 struct environment final {
 
@@ -36,6 +36,6 @@ private:
 
 arguments const& args () noexcept;
 
-} /* namespace apex::os */
+} /* namespace apex::runtime */
 
-#endif /* APEX_OS_SESSION_HPP */
+#endif /* APEX_RUNTIME_SESSION_HPP */
