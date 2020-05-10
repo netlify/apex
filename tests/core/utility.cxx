@@ -1,4 +1,3 @@
-#include <catch2/catch.hpp>
 #include <apex/core/utility.hpp>
 
 TEST_CASE("to_underlying") {

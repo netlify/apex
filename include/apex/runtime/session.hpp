@@ -29,9 +29,12 @@ struct arguments final {
   [[nodiscard]] bool empty() const noexcept;
   size_type size () const noexcept;
 
+  char const* const* argv () const noexcept;
+  int argc () const noexcept;
+
 private:
-  char const* const* argv;
-  int argc;
+  char const* const* entries;
+  int count;
 };
 
 arguments const& args () noexcept;

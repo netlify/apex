@@ -1,5 +1,3 @@
-#include <catch2/catch.hpp>
-
 #include <apex/memory/view.hpp>
 
 TEST_CASE("view_ptr default constructor", "[view_ptr][constructor]") {

@@ -6,7 +6,8 @@ extern "C" char** environ;
 char const* const* argv { };
 int argc { };
 
-[[gnu::constructor]] void initialize (int argc, char const* const* argv) {
+// 0 - 100 are reserved for implementation use
+[[gnu::constructor(101)]] void initialize (int argc, char const* const* argv) {
   ::argc = argc;
   ::argv = argv;
 }
@@ -20,9 +21,9 @@ arguments const& args () noexcept {
   return instance;
 }
 
-arguments::arguments (int argc, char const* const* argv) noexcept :
-  argc { argc },
-  argv { argv }
+arguments::arguments (int count, char const* const* entries) noexcept :
+  entries { entries },
+  count { count }
 { }
 
 bool arguments::empty () const noexcept {
@@ -30,7 +31,10 @@ bool arguments::empty () const noexcept {
 }
 
 arguments::size_type arguments::size() const noexcept {
-  return this->argc;
-};
+  return this->count;
+}
+
+char const* const* arguments::argv () const noexcept { return this->entries; }
+int arguments::argc () const noexcept { return this->count; }
 
 } /* namespace apex::runtime */

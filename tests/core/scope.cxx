@@ -1,5 +1,3 @@
-#include <catch2/catch.hpp>
-
 #include <apex/core/scope.hpp>
 
 TEST_CASE("scope_exit execute") {

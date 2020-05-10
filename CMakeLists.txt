@@ -3,8 +3,11 @@ cmake_minimum_required(VERSION 3.16)
 project(apex
   VERSION 0.1.0
   LANGUAGES CXX)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+include(CheckCXXCompilerFlag)
 
 include(CMakeDependentOption)
 include(GNUInstallDirs)
@@ -16,6 +19,22 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   option(APEX_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
 endif()
 
+check_cxx_compiler_flag(-Wstrict-aliasing CAN_WARN_STRICT_ALIASING)
+check_cxx_compiler_flag(-Wuninitialized CAN_WARN_UNINITIALIZED)
+check_cxx_compiler_flag(-Wuseless-cast CAN_WARN_USELESS_CAST)
+check_cxx_compiler_flag(-Wcast-align CAN_WARN_CAST_ALIGN)
+check_cxx_compiler_flag(-Wpedantic CAN_WARN_PEDANTIC)
+check_cxx_compiler_flag(-Wextra CAN_WARN_EXTRA)
+check_cxx_compiler_flag(-Wall CAN_WARN_DEFAULT)
+
+set(--warn-strict-aliasing $<$<BOOL:${CAN_WARN_STRICT_ALIASING}>:-Wstrict-aliasing>)
+set(--warn-uninitialized $<$<BOOL:${CAN_WARN_UNINITIALIZED}>:-Wuninitialized>)
+set(--warn-useless-cast $<$<BOOL:${CAN_WARN_USELESS_CAST}>:-Wuseless-cast>)
+set(--warn-cast-align $<$<BOOL:${CAN_WARN_CAST_ALIGN}>:-Wcast-align>)
+set(--warn-pedantic $<$<BOOL:${CAN_WARN_PEDANTIC}>:-Wpedantic>)
+set(--warn-default $<$<BOOL:${CAN_WARN_DEFAULT}>:-Wall>)
+set(--warn-extra $<$<BOOL:${CAN_WARN_EXTRA}>:-Wextra>)
+
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 add_library(apex)
@@ -25,7 +44,14 @@ target_compile_options(apex
   PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
     $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
-    $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>)
+    $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+    ${--warn-strict-aliasing}
+    ${--warn-uninitalized}
+    ${--warn-useless-cast}
+    ${--warn-cast-align}
+    ${--warn-pedantic}
+    ${--warn-default}
+    ${--warn-extra})
 target_include_directories(apex
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -41,7 +67,6 @@ install(EXPORT netlify-apex
 install(DIRECTORY include/ TYPE INCLUDE FILES_MATCHING PATTERN "*.hpp")
 
 if (APEX_BUILD_TESTS)
-  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
   set(CATCH_BUILD_TESTING OFF)
   set(CATCH_ENABLE_WERROR OFF)
   set(CATCH_INSTALL_HELPERS OFF)
@@ -69,6 +94,19 @@ if (APEX_BUILD_TESTS)
   target_link_libraries(${target} PUBLIC netlify::apex Catch2::Catch2)
   target_sources(${target} PRIVATE "${PROJECT_BINARY_DIR}/tests/catch.cxx")
   target_precompile_headers(${target} INTERFACE <catch2/catch.hpp>)
+  target_compile_options(${target}
+    PRIVATE
+      $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
+      $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
+      $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+    PUBLIC
+      ${--warn-strict-aliasing}
+      ${--warn-uninitalized}
+      ${--warn-useless-cast}
+      ${--warn-cast-align}
+      ${--warn-pedantic}
+      ${--warn-default}
+      ${--warn-extra})
 
   file(GLOB_RECURSE sources
     RELATIVE "${PROJECT_SOURCE_DIR}/tests"

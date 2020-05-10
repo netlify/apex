@@ -1,5 +1,3 @@
-#include <catch2/catch.hpp>
-
 #include <apex/core/functional.hpp>
 
 TEST_CASE("bind_front") {
