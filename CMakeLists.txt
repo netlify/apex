@@ -68,6 +68,7 @@ if (APEX_BUILD_TESTS)
   target_compile_features(${target} PUBLIC cxx_std_17)
   target_link_libraries(${target} PUBLIC netlify::apex Catch2::Catch2)
   target_sources(${target} PRIVATE "${PROJECT_BINARY_DIR}/tests/catch.cxx")
+  target_precompile_headers(${target} INTERFACE <catch2/catch.hpp>)
 
   file(GLOB_RECURSE sources
     RELATIVE "${PROJECT_SOURCE_DIR}/tests"
