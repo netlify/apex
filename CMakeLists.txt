@@ -58,6 +58,8 @@ target_compile_options(apex
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
     $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
     $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+    $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-ggdb>
+    $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-Og>
     $<$<CONFIG:Debug>:${--sanitize-address}>
     ${--warn-strict-aliasing}
     ${--warn-uninitalized}
@@ -109,11 +111,12 @@ if (APEX_BUILD_TESTS)
   target_sources(${target} PRIVATE "${PROJECT_BINARY_DIR}/tests/catch.cxx")
   target_precompile_headers(${target} INTERFACE <catch2/catch.hpp>)
   target_compile_options(${target}
-    PRIVATE
+    PUBLIC
       $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
       $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
       $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
-    PUBLIC
+      $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-ggdb>
+      $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-Og>
       ${--sanitize-address}
       ${--warn-strict-aliasing}
       ${--warn-uninitalized}
