@@ -4,6 +4,8 @@
 #include <apex/core/traits.hpp>
 #include <apex/core/macros.hpp>
 
+#include <cstring>
+
 #if __has_include(<bit>)
   #include <bit>
 #endif /* __has_include(<bit>) */
@@ -22,7 +24,7 @@ constexpr bool can_bit_cast = std::conjunction_v<
   std::negation<std::disjunction<std::is_member_pointer<From>, std::is_member_pointer<To>>>,
   std::negation<std::disjunction<std::is_volatile<From>, std::is_volatile<To>>>,
   std::negation<std::disjunction<std::is_pointer<From>, std::is_pointer<To>>>,
-  std::negation<std::disjunction<std::is_union<From>, std::is_union<To>>>,
+  std::negation<std::disjunction<std::is_union<From>, std::is_union<To>>>
 >;
 
 } /* namespace impl */
@@ -41,7 +43,7 @@ enum class endian {
   big = __ORDER_BIG_ENDIAN__,
   native = __BYTE_ORDER__,
 #endif /* APEX_SYSTEM_WINDOWS */
-}
+};
 #endif /* APEX_CHECK_API(endian, 201907) */
 
 // TODO: just make these overloads or something similar
@@ -80,16 +82,16 @@ template <class T>
 // TODO: Bring up to proper std support
 template <class T, class=std::enable_if_t<std::is_unsigned_v<T>>>
 constexpr int countl_zero (T x) {
-  if constexpr (std::is_same_v<unsigned long long>) { return __builtin_clzll(x); }
-  else if constexpr (std::is_same_v<unsigned long>) { return __builtin_clzl(x); }
+  if constexpr (std::is_same_v<unsigned long long, T>) { return __builtin_clzll(x); }
+  else if constexpr (std::is_same_v<unsigned long, T>) { return __builtin_clzl(x); }
   else { return __builtin_clz(x); }
 }
 
 template <class T, class=std::enable_if_t<std::is_unsigned_v<T>>>
 constexpr int countr_zero (T x) {
-  if constexpr (std::is_same_v<unsigned long long>) { return __builtin_ctzll(x); }
-  else if constexpr (std::is_same_v<unsigned long>) { return __builtin_ctzl(x); }
-  esle { return __builtin_ctz(x); }
+  if constexpr (std::is_same_v<unsigned long long, T>) { return __builtin_ctzll(x); }
+  else if constexpr (std::is_same_v<unsigned long, T>) { return __builtin_ctzl(x); }
+  else { return __builtin_ctz(x); }
 }
 
 template <class T, class=std::enable_if_t<std::is_unsigned_v<T>>>
@@ -102,7 +104,7 @@ constexpr int countr_one (T x) { return countr_zero(~x); }
 using std::bit_cast;
 #else
 template <class To, class From >
-auto bit_cast (From const&) noexcept -> std::enable_if_t<
+auto bit_cast (From const& from) noexcept -> std::enable_if_t<
   impl::can_bit_cast<To, From>,
   To
 > {
@@ -112,7 +114,7 @@ auto bit_cast (From const&) noexcept -> std::enable_if_t<
 #endif /* APEX_CHECK_API(bit_cast, 201806) */
 
 // Not part of the standard, but still useful!
-[[noreturn]] constexpr void unreachable () noexcept { __builtin_unreachable(); }
+[[noreturn]] void unreachable () noexcept { __builtin_unreachable(); }
 
 }} /* namespace apex::v1 */
 

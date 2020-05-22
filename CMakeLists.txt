@@ -7,6 +7,9 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
+# TODO: Remove when moving to IXM
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED YES)
+
 include(CheckCXXCompilerFlag)
 
 include(CMakeDependentOption)
@@ -48,6 +51,15 @@ set(--use-mode-avx2 $<$<BOOL:${CAN_USE_MODE_AVX2}>:-mavx2>)
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
+# TODO: Eventually replace this with a CMake wrapper project
+FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3310100.zip")
+if (NOT sqlite3_POPULATED)
+  # notice that we do not call `add_subdirectory`, we simply fetch and then
+  # use the subdirectory sources directly.
+  FetchContent_Populate(sqlite3)
+endif()
+
+
 add_library(apex)
 add_library(netlify::apex ALIAS apex)
 target_compile_features(apex PRIVATE cxx_std_17)
@@ -58,9 +70,9 @@ target_compile_options(apex
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
     $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
     $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
+    $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:${--sanitize-address}>
     $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-ggdb>
     $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-Og>
-    $<$<CONFIG:Debug>:${--sanitize-address}>
     ${--warn-strict-aliasing}
     ${--warn-uninitalized}
     ${--warn-useless-cast}
@@ -71,8 +83,13 @@ target_compile_options(apex
 target_include_directories(apex
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-target_sources(apex PRIVATE ${sources})
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PRIVATE
+    $<BUILD_INTERFACE:${sqlite3_SOURCE_DIR}>)
+target_sources(apex
+  PRIVATE
+    ${sqlite3_SOURCE_DIR}/sqlite3.c
+    ${sources})
 
 install(TARGETS apex
   EXPORT netlify-apex

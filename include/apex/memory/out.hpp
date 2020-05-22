@@ -39,8 +39,6 @@ struct out_ptr_t {
     return *this;
   }
 
-  operator 
-
 private:
   tuple<Args...> parameters { };
   Resource* resource { };

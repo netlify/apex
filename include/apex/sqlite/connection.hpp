@@ -3,20 +3,62 @@
 
 #include <filesystem>
 
-typedef struct sqlite3 sqlite3;
+#include <apex/core/outcome.hpp>
 
-namespace apex {
-inline namespace v1 {
+struct sqlite3;
+
+namespace apex::sqlite {
+
+struct context;
+struct table;
+
+enum class checkpoint { passive, full, restart, truncate };
+enum class aggregated { step, final };
+enum class pure : bool { no, yes };
+
+using aggregate_t = auto (*)(context&, aggregated) -> void;
+using function_t = auto (*)(context&) -> void;
 
 struct connection {
-  outcome<connection, error_code> temporary () noexcept;
-  outcome<connection, error_code> memory () noexcept;
+  using handle_type = std::unique_ptr<sqlite3>;
+  using pointer = handle_type::pointer;
 
-  outcome<connection, error_code> create (std::filesystem::path const&) noexcept;
-  outcome<connection, error_code> edit (std::filesystem::path const&) noexcept;
-  outcome<connection, error_code> open (std::filesystem::path const&) noexcept;
+  static outcome<connection, std::error_code> temporary () noexcept;
+
+  static outcome<connection, std::error_code> memory (std::string const&) noexcept;
+  static outcome<connection, std::error_code> memory (char const*) noexcept;
+  static outcome<connection, std::error_code> memory () noexcept;
+
+  static outcome<connection, std::error_code> create (std::filesystem::path const&) noexcept;
+  static outcome<connection, std::error_code> edit (std::filesystem::path const&) noexcept;
+  static outcome<connection, std::error_code> open (std::filesystem::path const&) noexcept;
+
+
+  void swap (connection&) noexcept;
+
+  pointer get () const noexcept;
+
+  ptrdiff_t changes () const noexcept;
+  bool autocommit () const noexcept;
+private:
+  connection (pointer) noexcept;
+
+  handle_type handle;
 };
 
-}} /* namespace apex::v1 */
+void execute (connection&, std::string_view) noexcept(false);
+
+void aggregate (connection&, std::string_view, ptrdiff_t, pure, aggregate_t) noexcept(false);
+void aggregate (connection&, std::string_view, ptrdiff_t, aggregate_t) noexcept(false);
+
+void function (connection&, std::string_view, ptrdiff_t, pure, function_t) noexcept(false);
+void function (connection&, std::string_view, ptrdiff_t, function_t) noexcept(false);
+
+void plugin (connection&, std::string_view, std::shared_ptr<table>) noexcept(false);
+
+void attach (connection&, std::filesystem::path const&, std::string_view) noexcept(false);
+void detach (connection&, std::string_view) noexcept(false);
+
+} /* namespace apex::sqlite */
 
 #endif /* APEX_SQLITE_CONNECTION_HPP */

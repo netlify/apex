@@ -6,29 +6,81 @@
 #include <functional>
 #include <tuple>
 
+namespace apex::impl {
+
+template <class F, class... Ts>
+struct bind_front final {
+
+  template <class T> using const_lvalue_ref = std::add_lvalue_reference_t<std::add_const_t<T>>;
+  template <class T> using const_rvalue_ref = std::add_rvalue_reference_t<std::add_const_t<T>>;
+
+  template <template <class> class M, class... Args>
+  static constexpr bool nothrow = std::is_nothrow_invocable_v<
+    M<std::decay_t<F>>,
+    M<std::decay_t<Ts>>...,
+    Args...
+  >;
+
+  constexpr explicit bind_front (F&& f, Ts&&... args) :
+    bound {std::forward<Ts>(args)...},
+    function { std::forward<F>(f) }
+  { }
+
+  template <class... Args>
+  constexpr decltype(auto) operator () (Args&&... args) & noexcept(nothrow<std::add_lvalue_reference_t, Args...>) {
+    return std::apply(
+      this->function,
+      std::tuple_cat(
+        this->bound,
+        std::forward_as_tuple(std::forward<Args>(args)...)));
+  }
+
+  template <class... Args>
+  constexpr decltype(auto) operator () (Args&&... args) const& noexcept(nothrow<const_lvalue_ref, Args...>) {
+    return std::apply(
+      this->function,
+      std::tuple_cat(
+        this->bound,
+        std::forward_as_tuple(std::forward<Args>(args)...)));
+  }
+
+  template <class... Args>
+  constexpr decltype(auto) operator () (Args&&... args) && noexcept(nothrow<std::add_rvalue_reference_t, Args...>) {
+    return std::apply(
+      std::move(this->function),
+      std::tuple_cat(
+        std::move(this->bound),
+        std::forward_as_tuple(std::forward<Args>(args)...)));
+  }
+
+  template <class... Args>
+  constexpr decltype(auto) operator () (Args&&... args) const&& noexcept(nothrow<const_rvalue_ref, Args...>) {
+    return std::apply(
+      std::move(this->function),
+      std::tuple_cat(
+        std::move(this->bound),
+        std::forward_as_tuple(std::forward<Args>(args)...)));
+  }
+
+private:
+  // TODO: use an apex::compressed<T, U> instead~
+  // pair is not constexpr in C++17, so we can't make this entirely constexpr
+  std::tuple<std::decay_t<Ts>...> bound;
+  std::decay_t<F> function;
+};
+
+} /* namespace apex::impl */
+
 namespace apex {
 inline namespace v1 {
 
-// This does not follow the specification "to the letter", but we'll rarely run
-// into the issue that our break performs. By the time this function is
-// available everywhere we won't be using our implementation anyhow.
-// Doing it "the correct way" will increase the amount of work needed.
 template <class F, class... Args>
 constexpr auto bind_front (F&& f, Args&&... args) {
   static_assert((std::is_move_constructible_v<std::decay_t<Args>> and ...));
   static_assert((std::is_constructible_v<std::decay_t<Args>, Args> and ...));
   static_assert(std::is_move_constructible_v<std::decay_t<F>>);
   static_assert(std::is_constructible_v<std::decay_t<F>, F>);
-  return [
-    f = std::forward<F>(f),
-    bound = std::tuple<std::decay_t<Args>...>(std::forward<Args>(args)...)
-  ] (auto&&... args) constexpr {
-      return std::apply(
-        f,
-        std::tuple_cat(
-          bound,
-          std::forward_as_tuple(std::forward<decltype(args)>(args)...)));
-  };
+  return apex::impl::bind_front<F, Args...>(std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template <class> struct function_ref;

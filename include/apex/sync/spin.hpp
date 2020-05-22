@@ -24,7 +24,7 @@ struct spin_mutex {
   void unlock () noexcept { this->flag.clear(std::memory_order_release); }
   void lock () noexcept {
     // These numbers are chosen at random. They *could* technically be template
-    // parameters or generated via CTAD. THis would make for a more powerful
+    // parameters or generated via CTAD. This would make for a more powerful
     // API and usage
     // XXX: in actuality the numbers are taken from
     // https://timur.audio/using-locks-in-real-time-audio-processing-safely

@@ -1,6 +1,9 @@
 #ifndef APEX_CORE_OUTCOME_HPP
 #define APEX_CORE_OUTCOME_HPP
 
+#include <apex/core/traits.hpp>
+#include <utility>
+
 namespace apex {
 inline namespace v1 {
 
@@ -8,6 +11,8 @@ inline namespace v1 {
 // TODO: There *does* need to be a specialization for references, because
 // we can currently construct an outcome<int&, std::string> with an rvalue
 // TODO: do we want to permit things like outcome<int, int>?
+// TODO: Change 'state' to 'valid', because a 'valid outcome' is a success
+//       and an 'invalid outcome' is an error
 template <class T, class E>
 struct outcome final {
 
@@ -27,42 +32,42 @@ struct outcome final {
   using error_type = E;
 
   template <class... Args>
-  outcome (in_place_type_t<value_type>, Args&&... args) :
-    state { true },
-    success { std::forward<Args>(args)... }
+  outcome (std::in_place_type_t<value_type>, Args&&... args) :
+    success { std::forward<Args>(args)... },
+    state { true }
   { }
 
   template <class... Args>
-  outcome (in_place_type_t<error_type>, Args&&... args) :
+  outcome (std::in_place_type_t<error_type>, Args&&... args) :
+    failure { std::forward<Args>(args)... },
     state { false }
-    failure { std::forward<Args>(args)... }
   { }
 
   outcome (value_type const& value) :
-    outcome { in_place_type<value_type>, value }
+    outcome { std::in_place_type<value_type>, value }
   { }
 
   outcome (value_type&& value) :
-    outcome { in_place_type<value_type>, std::move(value) }
+    outcome { std::in_place_type<value_type>, std::move(value) }
   { }
 
   outcome (error_type const& error) :
-    outcome { in_place_type<error_type>, error }
+    outcome { std::in_place_type<error_type>, error }
   { }
 
   outcome (error_type&& error) :
-    outcome { in_place_type<error_type>, std::move(error) }
+    outcome { std::in_place_type<error_type>, std::move(error) }
   { }
 
   outcome (outcome const& that) :
-    valid { that.valid }
+    state { that.state }
   {
     if (*this) { construct_at(std::addressof(this->success), that.success); }
     else { construct_at(std::addressof(this->failure), that.failure); }
   }
 
   outcome (outcome&& that) :
-    valid { that.valid }
+    state { that.state }
   {
     if (*this) { construct_at(std::addressof(this->success), std::move(that.success)); }
     else { construct_at(std::addressof(this->failure), std::move(that.failure)); }
@@ -118,7 +123,7 @@ struct outcome final {
   value_type& operator * () noexcept { return this->success; }
 
   value_type const* operator -> () const noexcept { return std::addressof(**this); }
-  value_type& operator -> () const noexcept { return std::addressof(**this); }
+  value_type& operator -> () noexcept { return std::addressof(**this); }
 
   error_type const& error () const noexcept { return this->failure; }
   error_type& error () noexcept { return this->failure; }
@@ -144,8 +149,8 @@ private:
   }
 
   union {
-    success_type success,
-    failure_type failure
+    success_type success;
+    failure_type failure;
   };
   bool state;
 };

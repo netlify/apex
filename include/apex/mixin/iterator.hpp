@@ -1,8 +1,16 @@
 #ifndef APEX_MIXIN_ITERATOR_HPP
 #define APEX_MIXIN_ITERATOR_HPP
 
+#include <apex/core/traits.hpp>
+#include <iterator>
+
 namespace apex {
 inline namespace v1 {
+
+using std::declval;
+
+// TODO: make a single iterator mixin
+// TODO: Use iterator_traits to implement most of it
 
 template <class> struct random_access_iterator;
 template <class> struct bidirectional_iterator;
@@ -13,25 +21,36 @@ template <class> struct input_iterator;
 // TODO: static_assert(is_detected_v<has_distance_to, derived>);
 template <class T>
 struct random_access_iterator : bidirectional_iterator<T> {
-  using iterator_category = random_access_iterator_tag;
+  using iterator_category = std::random_access_iterator_tag;
   using difference_type = decltype(declval<T>().distance_to(declval<T>()));
+  using derived = typename bidirectional_iterator<T>::derived;
 
   static_assert(std::is_signed_v<difference_type>);
 
   static constexpr bool nothrow_copyable = std::is_nothrow_copy_constructible_v<derived>;
 
-  decltype(auto) operator [] (difference_type n) const { return *(self() + n); }
+  decltype(auto) operator [] (difference_type n) const { return *(this->self() + n); }
+
+  decltype(auto) operator += (difference_type n) const {
+    this->self().advance(n);
+    return this->self();
+  }
+
+  decltype(auto) operator -= (difference_type n) const {
+    this->self().advance(-n);
+    return this->self();
+  }
 
   auto operator - (random_access_iterator const& that) const {
-    return self().distance_to(that.self());
+    return this->self().distance_to(that.self());
   }
 
   derived operator - (difference_type n) const noexcept(nothrow_copyable) {
-    return derived { self() } -= n;
+    return derived { this->self() } -= n;
   }
 
   derived operator + (difference_type n) const noexcept(nothrow_copyable) {
-    return derived { self() } += n;
+    return derived { this->self() } += n;
   }
 
   bool operator >= (random_access_iterator const& that) const noexcept {
@@ -46,7 +65,7 @@ struct random_access_iterator : bidirectional_iterator<T> {
     return that < *this;
   }
 
-  bool operator < (random_acccess_iterator const& that) const noexcept {
+  bool operator < (random_access_iterator const& that) const noexcept {
     return std::distance(*this, that) > 0;
   }
 };
@@ -54,38 +73,43 @@ struct random_access_iterator : bidirectional_iterator<T> {
 // TODO: static_assert(is_detected_v<has_decrement>);
 template <class T>
 struct bidirectional_iterator : forward_iterator<T> {
-  using iterator_category = bidirectional_iterator_tag;
+  using iterator_category = std::bidirectional_iterator_tag;
+  using derived = typename forward_iterator<T>::derived;
 
   derived operator -- (int) noexcept(std::is_nothrow_copy_constructible_v<derived>) {
-    derived temp { self() };
+    derived temp { this->self() };
     --*this;
     return temp;
   }
 
   derived& operator -- () noexcept(noexcept(std::declval<derived>().decrement())) {
-    self().decrement();
-    return self;
+    this->self().decrement();
+    return this->self();
   }
 };
 
 template <class T>
 struct forward_iterator : input_iterator<T> {
-  using iterator_category = forward_iterator_tag;
+  using iterator_category = std::forward_iterator_tag;
+  using derived = typename input_iterator<T>::derived;
 
   derived operator ++ () noexcept(std::is_nothrow_copy_constructible_v<derived>) {
-    derived temp { self() };
+    derived temp { this->self() };
     ++*this;
     return temp;
   }
 };
 
 template <class T>
+using has_dereference = decltype(declval<T>().dereference());
+
+template <class T>
 struct input_iterator {
-  using iterator_category = input_iterator_tag;
+  using iterator_category = std::input_iterator_tag;
   using difference_type = ptrdiff_t;
-  using value_type = remove_cvref_t<decltype(declval<T>().dereference())>;
-  using reference = decltype(declval<T>().dereference());
-  using pointer = add_pointer_t<reference>; // TODO: look this up for rangesv3?
+  using value_type = remove_cvref_t<detected_t<has_dereference, T>>;
+  using reference = detected_t<has_dereference, T>;
+  using pointer = std::add_pointer_t<reference>; // TODO: look this up for rangesv3?
 
   using derived = T;
 

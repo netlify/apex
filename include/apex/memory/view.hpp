@@ -1,6 +1,11 @@
 #ifndef APEX_MEMORY_VIEW_HPP
 #define APEX_MEMORY_VIEW_HPP
 
+#include <apex/core/traits.hpp>
+#include <apex/core/types.hpp>
+
+#include <utility>
+
 namespace apex {
 inline namespace v1 {
 
@@ -12,10 +17,10 @@ struct view_ptr {
   constexpr view_ptr  () noexcept = default;
 
   //template <class T> constexpr view_ptr (view_ptr<T> that);
-  constexpr view_ptr (std::nullptr_t) noexcept : view_ptr { } { };
+  constexpr view_ptr (nullptr_t) noexcept : view_ptr { } { };
   explicit view_ptr (pointer ptr) noexcept : ptr { ptr } { }
 
-  view_ptr& operator = (std::nullptr_t) noexcept {
+  view_ptr& operator = (nullptr_t) noexcept {
     this->reset();
     return *this;
   }
@@ -83,22 +88,22 @@ bool operator < (view_ptr<T> const& lhs, view_ptr<U> const& rhs) noexcept {
 }
 
 template <class T>
-bool operator == (view_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
+bool operator == (view_ptr<T> const& lhs, nullptr_t) noexcept {
   return lhs.get() == nullptr;
 }
 
 template <class T>
-bool operator != (view_ptr<T> const& lhs, ::std::nullptr_t) noexcept {
+bool operator != (view_ptr<T> const& lhs, nullptr_t) noexcept {
   return lhs.get() != nullptr;
 }
 
 template <class T>
-bool operator == (::std::nullptr_t, view_ptr<T> const& rhs) noexcept {
+bool operator == (nullptr_t, view_ptr<T> const& rhs) noexcept {
   return nullptr == rhs.get();
 }
 
 template <class T>
-bool operator != (::std::nullptr_t, view_ptr<T> const& rhs) noexcept {
+bool operator != (nullptr_t, view_ptr<T> const& rhs) noexcept {
   return nullptr != rhs.get();
 }
 

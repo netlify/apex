@@ -49,13 +49,13 @@ struct iterable final {
   }
 private:
   template <class R>
-  static begin (R&& range) {
+  static decltype(auto) begin (R&& range) {
     using std::begin;
     return begin(std::forward<R>(range));
   }
 
-  template <class T>
-  static end (R&& range) {
+  template <class R>
+  static decltype(auto) end (R&& range) {
     using std::end;
     return end(std::forward<R>(range));
   }

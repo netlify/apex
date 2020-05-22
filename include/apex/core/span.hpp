@@ -6,8 +6,8 @@
 #include <apex/core/types.hpp>
 
 #include <apex/container/array.hpp>
-
 #include <apex/detect/iter.hpp>
+#include <apex/memory/std.hpp>
 
 #include <iterator>
 #include <limits>
@@ -24,11 +24,11 @@ inline namespace v1 {
 #if APEX_CHECK_API(span, 202002)
   using ::std::as_writable_bytes;
   using ::std::as_bytes;
+  using ::std::dynamic_extent;
   using ::std::span;
 #else
 
 inline constexpr size_t dynamic_extent = std::numeric_limits<size_t>::max();
-template <class, size_t=dynamic_extent> struct span;
 
 namespace impl {
 
@@ -60,16 +60,13 @@ struct span<T, dynamic_extent> final {
   constexpr auto size () const noexcept { return this->len; }
 
 private:
-  size_t len { };
   T* ptr { };
+  size_t len { };
 };
 
 } /* namespace impl */
 
-template <class> struct is_span : std::false_type { };
-template <class T, size_t N> struct is_span<span<T, N>> : std::true_type { };
-
-template <class T, size_t Extent>
+template <class T, size_t Extent=dynamic_extent>
 struct span {
   static_assert(not std::is_abstract_v<T>);
   static_assert(std::is_object_v<T>);
@@ -108,7 +105,7 @@ struct span {
 
   template <class It>
   constexpr span (It first, size_type count) noexcept :
-    storage_type { to_address(first), count }
+    storage { apex::to_address(first), count }
   { }
 
   template <

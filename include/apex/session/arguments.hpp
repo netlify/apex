@@ -1,24 +1,17 @@
-#ifndef APEX_RUNTIME_SESSION_HPP
-#define APEX_RUNTIME_SESSION_HPP
+#ifndef APEX_SESSION_ARGUMENTS_HPP
+#define APEX_SESSION_ARGUMENTS_HPP
 
 #include <string_view>
 #include <iterator>
 
 #include <cstddef>
 
-// slightly modified implementation of P1275
-
-namespace apex::runtime {
-
-struct environment final {
-
-};
+namespace apex::session {
 
 // TODO: Add ssize() call
-// TODO: Permit constructing *with* an argc, argv** pair
 // TODO: Add string_view-like operations to reduce size/slice.
 struct arguments final {
-  using iterator = char const* const*; // temporary for now, will eventually be a string view :)
+  using iterator = char const* const*; // temporary for now, will eventually be a string view iterator :)
   using reverse_iterator = std::reverse_iterator<iterator>;
   using value_type = std::string_view;
   using size_type = size_t;
@@ -26,8 +19,8 @@ struct arguments final {
   arguments (int, char const* const*) noexcept;
   arguments () noexcept = delete;
 
-  // TODO: return an outcome<value_type, errors::out_of_range> instead
   value_type operator [] (size_type) const noexcept;
+  // TODO: return an outcome<value_type, errors::out_of_range> instead
   value_type at (size_type) const noexcept(false);
 
   reverse_iterator rbegin () const noexcept;
@@ -47,8 +40,6 @@ private:
   int count;
 };
 
-arguments const& args () noexcept;
+} /* namespace apex::session */
 
-} /* namespace apex::runtime */
-
-#endif /* APEX_RUNTIME_SESSION_HPP */
+#endif /* APEX_SESSION_ARGUMENTS_HPP */
