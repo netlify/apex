@@ -91,6 +91,15 @@ using is_detected_convertible = std::is_convertible<
 template <class T, template <class...> class U, class... Args>
 using is_detected_exact = std::is_same<T, detected_t<U, Args...>>;
 
+template <template <class...> class T, class... Args>
+inline constexpr bool is_detected_v = is_detected<T, Args...>::value;
+
+template <class To, template <class...> class T, class... Args>
+inline constexpr bool is_detected_convertible_v = is_detected_convertible<To, T, Args...>::value;
+
+template <class T, template <class...> class U, class... Args>
+inline constexpr bool is_detected_exect_v = is_detected_exact<T, U, Args...>::value;
+
 template <class> struct class_of;
 template <class S, class T>
 struct class_of<S T::*> : type_identity<T> { };

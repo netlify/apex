@@ -1,8 +1,12 @@
 #ifndef APEX_MIXIN_HANDLE_HPP
 #define APEX_MIXIN_HANDLE_HPP
 
-namespace apex {
-inline namespace v1 {
+#include <apex/core/traits.hpp>
+#include <apex/detect/operators.hpp>
+
+#include <type_traits>
+
+namespace apex::mixin {
 
 // Intended to be used like:
 /*
@@ -16,17 +20,17 @@ template <class T, class Storage>
 struct handle {
   using storage_type = Storage;
   using pointer = detected_or_t<
-    add_pointer_t<detected_or_t<T, detect::element_type, storage_type>>,
-    detect::pointer,
+    std::add_pointer_t<detected_or_t<T, detect::types::element_type, storage_type>>,
+    detect::types::pointer,
     storage_type
   >;
 
   static_assert(std::is_default_constructible_v<storage_type>);
   static_assert(std::is_move_constructible_v<storage_type>);
-  static_assert(std::is_convertible_v<bool, storage_type>);
+//  static_assert(std::is_convertible_v<bool, storage_type>);
   static_assert(std::is_swappable_v<storage_type>);
-  static_assert(is_detected_v<detect::op::dereference, storage_type>);
-  static_assert(is_detected_v<detect::op::arrow, storage_type>);
+  static_assert(is_detected_v<detect::pointer::dereference, storage_type>);
+  static_assert(is_detected_v<detect::pointer::arrow, storage_type>);
 
   handle (std::nullptr_t) noexcept : handle { } { }
   handle () noexcept = default;
@@ -54,6 +58,6 @@ protected:
   storage_type storage;
 };
 
-}} /* namespace apex::v1 */
+} /* namespace apex::mixin */
 
 #endif /* APEX_MIXIN_HANDLE_HPP */

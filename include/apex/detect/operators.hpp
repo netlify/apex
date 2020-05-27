@@ -7,7 +7,7 @@ namespace apex::detect {
 
 using ::std::declval;
 
-}} /* apex::detect */
+} /* apex::detect */
 
 namespace apex::detect::prefix {
 
