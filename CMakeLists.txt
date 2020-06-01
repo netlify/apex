@@ -18,10 +18,9 @@ include(GNUInstallDirs)
 include(FetchContent)
 include(CTest)
 
-# Needs to handle a few more things I reckon :)
-if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  option(APEX_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
-endif()
+cmake_dependent_option(APEX_BUILD_TESTS
+  "Build Netlify Apex Unit Tests" ON
+  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;BUILD_TESTING" OFF)
 
 check_cxx_compiler_flag(-Wstrict-aliasing CAN_WARN_STRICT_ALIASING)
 check_cxx_compiler_flag(-Wuninitialized CAN_WARN_UNINITIALIZED)
@@ -52,7 +51,7 @@ set(--use-mode-avx2 $<$<BOOL:${CAN_USE_MODE_AVX2}>:-mavx2>)
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 # TODO: Eventually replace this with a CMake wrapper project
-FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3310100.zip")
+FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3320100.zip")
 if (NOT sqlite3_POPULATED)
   # notice that we do not call `add_subdirectory`, we simply fetch and then
   # use the subdirectory sources directly.
@@ -62,11 +61,12 @@ endif()
 
 add_library(apex)
 add_library(netlify::apex ALIAS apex)
-target_compile_features(apex PRIVATE cxx_std_17)
+target_compile_features(apex PUBLIC cxx_std_20)
 target_compile_options(apex
   PUBLIC
     ${--use-mode-avx2}
   PRIVATE
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:${CMAKE_CXX_COMPILER_VERSION},10>>:-fconcepts>
     $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
     $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
     $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>

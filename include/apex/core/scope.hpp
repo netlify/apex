@@ -6,7 +6,6 @@
 #include <limits>
 
 namespace apex {
-inline namespace v1 {
 namespace impl {
 
 struct scope_exit_policy {
@@ -85,6 +84,6 @@ template <class Fn> scope_failure (Fn&&) -> scope_failure<Fn>;
 template <class Fn> scope_success (Fn&&) -> scope_success<Fn>;
 template <class Fn> scope_exit (Fn&&) -> scope_exit<Fn>;
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_CORE_SCOPE_HPP */

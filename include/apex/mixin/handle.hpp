@@ -1,10 +1,42 @@
 #ifndef APEX_MIXIN_HANDLE_HPP
 #define APEX_MIXIN_HANDLE_HPP
 
-#include <apex/core/traits.hpp>
+#include <apex/core/concepts.hpp>
 #include <apex/detect/operators.hpp>
 
 #include <type_traits>
+
+// TODO: consider renaming the type to resource_handle, or just 'resource'
+// We can also use the name 'resource' for the concept itself. All of this is
+// in flux.
+
+namespace apex::mixin::impl {
+
+template <class T> concept has_element_type = requires { typename T::element_type; };
+template <class T> concept has_pointer = requires { typename T::pointer; };
+
+template <class T> requires has_element_type<T>
+std::add_pointer_t<typename T::element_type> pointer_type_of () noexcept;
+
+template <class T> requires has_pointer<T>
+typename T::pointer pointer_type_of () noexcept;
+
+template <class T> using pointer_type_of_t = decltype(pointer_type_of<remove_cvref_t<T>>());
+
+template <class T>
+concept handle_storage = requires (T object) {
+  requires equality_comparable_with<T, nullptr_t>;
+  requires totally_ordered<T>;
+  requires movable<T>;
+
+  { object.get() } noexcept -> pointer_type_of_t<T>;
+  { static_cast<bool>(object) } noexcept;
+  { object.reset(object.get()) } noexcept;
+  { object.reset() } noexcept;
+  { *object } noexcept -> same_as<decltype(*object.get())>;
+};
+
+} /* namespace apex::mixin::impl */
 
 namespace apex::mixin {
 
@@ -49,10 +81,8 @@ struct handle {
     swap(this->storage, that.storage);
   }
 protected:
-  template <
-    class... Args,
-    class=std::enable_if_t<std::is_constructible_v<storage_type, pointer, Args...>>
-  > handle (pointer ptr, Args&&... args) :
+  template <class... Args> requires constructible_from<storage_type, Args...>
+  handle (pointer ptr, Args&&... args) :
     storage { ptr, std::forward<Args>(args)... }
   { }
   storage_type storage;

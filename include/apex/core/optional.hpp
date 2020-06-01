@@ -4,7 +4,6 @@
 #include <apex/memory/std.hpp>
 
 namespace apex {
-inline namespace v1 {
 
 // TODO: finish adding constructors
 // TODO: Add assignment, swap, std API, monadic operations, etc.
@@ -92,6 +91,6 @@ private:
 
 template <class T> optional(T) -> optional<T>;
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_CORE_OPTIONAL_HPP */

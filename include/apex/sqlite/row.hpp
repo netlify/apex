@@ -1,7 +1,7 @@
 #ifndef APEX_SQLITE_ROW_HPP
 #define APEX_SQLITE_ROW_HPP
 
-#include <apex/concepts/core.hpp>
+#include <apex/core/concepts.hpp>
 #include <apex/memory/view.hpp>
 
 #include <apex/sqlite/column.hpp>
@@ -12,11 +12,9 @@ namespace apex::sqlite {
 
 struct statement;
 
-struct row final : input_iterator<row> {
+struct row final : private mixin::iterator<row> {
   using handle_type = view_ptr<sqlite3_stmt>;
   using pointer = handle_type::pointer;
-
-//  static_assert(not concepts::same_as<value_type, undefined>);
 
   explicit row (statement const&) noexcept;
 

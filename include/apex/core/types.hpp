@@ -5,7 +5,6 @@
 #include <cstdint>
 
 namespace apex {
-inline namespace v1 {
 
 using std::nullptr_t;
 using std::ptrdiff_t;
@@ -30,6 +29,13 @@ using f32 = float;
 
 struct empty { };
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
+
+// Some 'default' types
+namespace apex::defaults {
+
+struct difference_type_t { using difference_type = ptrdiff_t; };
+
+} /* namespace apex::defaults */
 
 #endif /* APEX_CORE_TYPES_HPP */

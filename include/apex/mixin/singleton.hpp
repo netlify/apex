@@ -1,12 +1,12 @@
 #ifndef APEX_MIXIN_SINGLETON_HPP
 #define APEX_MIXIN_SINGLETON_HPP
 
-namespace apex {
-inline namespace v1 {
+#include <apex/core/concepts.hpp>
 
-template <class T>
+namespace apex {
+
+template <class T> requires default_initializable
 struct singleton {
-  static_assert(std::is_default_constructible_v<T>);
   singleton (singleton const&) = delete;
   singleton () = delete;
   ~singleton () = delete;
@@ -30,6 +30,6 @@ template <class T> inline auto& local = singleton<T>::local();
 template <class T> inline auto const& global<T const> = singleton<T>::global();
 template <class T> inline auto const& local<T const> = singleton<T>::local();
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_MIXIN_SINGLETON_HPP */

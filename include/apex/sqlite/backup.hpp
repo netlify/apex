@@ -12,7 +12,7 @@ namespace apex::sqlite {
 
 struct connection;
 
-struct backup final /*: input_iterator<backup>*/ {
+struct backup final : private mixin::iterator<backup> {
   using handle_type = std::shared_ptr<sqlite3_backup>;
   using pointer = handle_type::element_type*;
 

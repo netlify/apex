@@ -1,8 +1,7 @@
 #ifndef APEX_CORE_SPAN_HPP
 #define APEX_CORE_SPAN_HPP
 
-#include <apex/core/traits.hpp>
-#include <apex/core/macros.hpp>
+#include <apex/core/concepts.hpp>
 #include <apex/core/types.hpp>
 
 #include <apex/container/array.hpp>
@@ -19,7 +18,6 @@
 #endif /* __has_include(<span>) */
 
 namespace apex {
-inline namespace v1 {
 
 #if APEX_CHECK_API(span, 202002)
   using ::std::as_writable_bytes;
@@ -108,25 +106,22 @@ struct span {
     storage { apex::to_address(first), count }
   { }
 
-  template <
-    class It,
-    class End,
-    class=std::enable_if_t<not std::is_convertible_v<End, size_t>>
-  > constexpr span (It first, End last) noexcept :
+  template <class It, class End> requires (not is_convertible_v<End, size_t>)
+  constexpr span (It first, End last) noexcept :
     span { first, last - first }
   { }
 
-  template <size_t N, class=std::enable_if_t<safe_extent<N>>>
+  template <size_t N> requires safe_extent<N>
   constexpr span (element_type (&array)[N]) noexcept :
     span { array, N }
   { }
 
-  template <class U, size_t N, class=std::enable_if_t<safe_extent<N>>>
+  template <class U, size_t N> requires safe_extent<N>
   constexpr span (std::array<U, N> const& array) noexcept :
     span { array.data(), N }
   { }
 
-  template <class U, size_t N, class=std::enable_if_t<safe_extent<N>>>
+  template <class U, size_t N> requires safe_extent<N>
   constexpr span (std::array<U, N>& array) noexcept :
     span { array.data(), N }
   { }
@@ -150,11 +145,9 @@ struct span {
     span { std::data(std::forward<R>(r)), std::size(std::forward<R>(r)) }
   { }
 
-  template <
-    class U,
-    size_t N,
-    class=std::enable_if_t<safe_extent<N> and not std::is_same_v<U, T>>
-  > constexpr span (span<U, N> const& s) noexcept :
+  template <class U, size_t N>
+  requires safe_extent<N> and (not same_as<U, T>)
+  constexpr span (span<U, N> const& s) noexcept :
     span { s.data(), s.size() }
   { }
 
@@ -195,6 +188,7 @@ struct span {
   template <size_t Offset, size_t Count=dynamic_extent>
   constexpr subspan_t<Offset, Count> subspan () const noexcept {
     if constexpr (Count == dynamic_extent) {
+      // TODO: this isn't currently handled...
     } else {
       return { this->data() + Offset, Count };
     }
@@ -239,12 +233,13 @@ span (R) -> span<typename R::value_type>;
 extern template struct span<byte const, dynamic_extent>;
 extern template struct span<byte, dynamic_extent>;
 
-template <class T, size_t N, class=std::enable_if_t<not std::is_const_v<T>>>
+template <class T, size_t N>
+requires (not is_const_v<T>)
 span<byte, sizeof(T) * N> as_writable_bytes (span<T, N> s) noexcept {
   return { reinterpret_cast<std::byte*>(s.data()), s.size_bytes() };
 }
 
-template <class T, class=std::enable_if_t<not std::is_const_v<T>>>
+template <class T> requires (not is_const_v<T>)
 span<byte> as_writable_bytes (span<T> s) noexcept {
   return { reinterpret_cast<std::byte*>(s.data()), s.size_bytes() };
 }
@@ -264,6 +259,6 @@ void swap (span<T, N>& lhs, span<T, N>& rhs) noexcept { lhs.swap(rhs); }
 
 #endif /* APEX_CHECK_API(span) */
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_CORE_SPAN_HPP */

@@ -117,11 +117,23 @@
   #error "Unknown architecture detected"
 #endif /* APEX_ARCH_UNKNOWN */
 
+#if not defined(__has_builtin)
+  #define __has_builtin(x) false
+#endif /* not defined(__has_builtin) */
+
+#if not defined(__has_cpp_attribute)
+  #define __has_cpp_attribute(x) false
+#endif /* not defined (__has_cpp_attribute) */
+
 #define APEX_IMPL_STRINGIFY(x) #x
 #define APEX_STRINGIFY(x) APEX_IMPL_STRINGIFY(x)
 
 #define APEX_CONCAT(x, y) APEX_PASTE(x, y)
 #define APEX_PASTE(x, y) x##y
+
+#define APEX_CHECK_ATTRIBUTE(name) __has_cpp_attribute(name)
+// Clang does NOT like us using APEX_CONCAT here :(
+#define APEX_CHECK_BUILTIN(name) (__has_builtin(__builtin_##name))
 
 #define APEX_CHECK_API(name, version) (APEX_CONCAT(__cpp_lib_, name) >= APEX_CONCAT(version, L))
 #define APEX_CHECK_CXX(name, version) (APEX_CONCAT(__cpp_, name) >= APEX_CONCAT(version, L))

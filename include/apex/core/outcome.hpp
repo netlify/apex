@@ -1,11 +1,10 @@
 #ifndef APEX_CORE_OUTCOME_HPP
 #define APEX_CORE_OUTCOME_HPP
 
-#include <apex/core/traits.hpp>
+#include <apex/core/concepts.hpp>
 #include <utility>
 
 namespace apex {
-inline namespace v1 {
 
 // TODO: This needs a once over to make everything noexcept-clean
 // TODO: There *does* need to be a specialization for references, because
@@ -16,14 +15,14 @@ inline namespace v1 {
 template <class T, class E>
 struct outcome final {
 
-  using success_type = std::conditional_t<
-    std::is_lvalue_reference_v<T>,
+  using success_type = conditional_t<
+    is_lvalue_reference_v<T>,
     std::reference_wrapper<T>,
     T
   >;
 
-  using failure_type = std::conditional_t<
-    std::is_lvalue_reference_v<E>,
+  using failure_type = conditional_t<
+    is_lvalue_reference_v<E>,
     std::reference_wrapper<E>,
     E
   >;
@@ -31,13 +30,13 @@ struct outcome final {
   using value_type = T;
   using error_type = E;
 
-  template <class... Args>
+  template <class... Args> requires constructible_from<success_type, Args...>
   outcome (std::in_place_type_t<value_type>, Args&&... args) :
     success { std::forward<Args>(args)... },
     state { true }
   { }
 
-  template <class... Args>
+  template <class... Args> requires constructible_from<error_type, Args...>
   outcome (std::in_place_type_t<error_type>, Args&&... args) :
     failure { std::forward<Args>(args)... },
     state { false }
@@ -155,6 +154,6 @@ private:
   bool state;
 };
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_CORE_OUTCOME_HPP */

@@ -1,6 +1,7 @@
 #ifndef APEX_MEMORY_STD_HPP
 #define APEX_MEMORY_STD_HPP
 
+#include <apex/core/concepts.hpp>
 #include <memory>
 
 // This provides shims for various std:: functions
@@ -32,14 +33,15 @@ template <class T>
 void destroy_at (T* ptr) noexcept(std::is_nothrow_destructible_v<T>) {
   if constexpr (std::is_array_v<T>) {
     for (auto& element : *ptr) {
-      destroy_at(std::addressof(element));
+      apex::destroy_at(std::addressof(element));
     }
   } else if constexpr (not std::is_trivially_destructible_v<T>) {
     ptr->~T();
   }
 }
 
-template <class T, class... Args, class=std::enable_if_t<std::is_constructible_v<T, Args...>>>
+template <class T, class... Args>
+requires constructible_from<T, Args...>
 auto construct_at (T* location, Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>) {
   if constexpr (std::is_aggregate_v<T>) {
     return ::new (static_cast<void*>(location)) T { std::forward<Args>(args)... };

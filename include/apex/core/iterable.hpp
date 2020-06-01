@@ -10,7 +10,6 @@
 // is itself an iterator.
 
 namespace apex {
-inline namespace v1 {
 
 // TODO: add detection calls for std::begin|std::end/T.begin()|T.end()
 template <class I, class S=I>
@@ -67,6 +66,6 @@ private:
 template <class I, class S>
 void swap (iterable<I, S>& lhs, iterable<I, S>& rhs) noexcept { lhs.swap(rhs); }
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_CORE_ITERABLE_HPP */

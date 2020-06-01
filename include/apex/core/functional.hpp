@@ -72,7 +72,6 @@ private:
 } /* namespace apex::impl */
 
 namespace apex {
-inline namespace v1 {
 
 template <class F, class... Args>
 constexpr auto bind_front (F&& f, Args&&... args) {
@@ -201,8 +200,6 @@ function_ref (R (*)(Args...)) -> function_ref<R(Args...)>;
 template <class R, class... Args>
 function_ref (R (*)(Args...) noexcept) -> function_ref<R(Args...) noexcept>;
 
-}} /* namespace apex::v1 */
-
-
+} /* namespace apex */
 
 #endif /* APEX_CORE_FUNCTIONAL_HPP */

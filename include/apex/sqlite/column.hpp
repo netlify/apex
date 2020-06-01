@@ -11,7 +11,7 @@ namespace apex::sqlite {
 using std::string_view;
 struct value;
 
-struct column /*: random_access_iterator<column>*/ {
+struct column final : private mixin::iterator<column> {
   using handle_type = view_ptr<sqlite3_stmt>;
   using pointer = handle_type::pointer;
 
