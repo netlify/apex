@@ -29,7 +29,7 @@ concept handle_storage = requires (T object) {
   requires totally_ordered<T>;
   requires movable<T>;
 
-  { object.get() } noexcept -> pointer_type_of_t<T>;
+  { object.get() } noexcept -> same_as<pointer_type_of_t<T>>;
   { static_cast<bool>(object) } noexcept;
   { object.reset(object.get()) } noexcept;
   { object.reset() } noexcept;
@@ -81,8 +81,9 @@ struct handle {
     swap(this->storage, that.storage);
   }
 protected:
-  template <class... Args> requires constructible_from<storage_type, Args...>
-  handle (pointer ptr, Args&&... args) :
+  template <class... Args> requires constructible_from<storage_type, pointer, Args...>
+  handle (pointer ptr, Args&&... args)
+    noexcept(std::is_nothrow_constructible_v<storage_type, pointer, Args...>) :
     storage { ptr, std::forward<Args>(args)... }
   { }
   storage_type storage;

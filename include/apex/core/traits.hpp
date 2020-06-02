@@ -19,6 +19,7 @@ using ::std::add_pointer_t;
 using ::std::add_const_t;
 
 using ::std::remove_reference_t;
+using ::std::remove_pointer_t;
 using ::std::remove_cv_t;
 using ::std::decay_t;
 
@@ -32,6 +33,7 @@ using ::std::add_pointer;
 using ::std::add_const;
 
 using ::std::remove_reference;
+using ::std::remove_pointer;
 using ::std::remove_cv;
 using ::std::decay;
 

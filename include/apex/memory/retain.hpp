@@ -4,11 +4,10 @@
 #include <apex/core/traits.hpp>
 
 #include <memory>
+#include <atomic>
 
 // This is an implementation of P0468
-namespace apex {
-inline namespace v1 {
-namespace impl {
+namespace apex::impl {
 
 template <class T, class P>
 using has_use_count = decltype(T::use_count(std::declval<P>()));
@@ -16,7 +15,9 @@ using has_use_count = decltype(T::use_count(std::declval<P>()));
 template <class T>
 using has_reset_action = typename T::reset_action;
 
-} /* namespace impl */
+} /* namespace apex::impl */
+
+namespace apex {
 
 struct retain_t { constexpr retain_t () noexcept = default; };
 struct adopt_t { constexpr adopt_t () noexcept = default; };
@@ -24,11 +25,9 @@ struct adopt_t { constexpr adopt_t () noexcept = default; };
 inline constexpr retain_t retain { };
 inline constexpr adopt_t adopt { };
 
-template <class> struct retain_traits;
-
 template <class T>
 struct atomic_reference_count {
-  template <class> friend class retain_traits;
+  template <class> friend struct retain_traits;
 protected:
   atomic_reference_count () = default;
 private:
@@ -37,6 +36,7 @@ private:
 
 template <class T>
 struct reference_count {
+  template <class> friend struct retain_traits;
 protected:
   reference_count () = default;
 private:
@@ -92,7 +92,7 @@ struct retain_ptr {
 
   using pointer = detected_or_t<
     std::add_pointer_t<element_type>,
-    detect::pointer,
+    detect::types::pointer,
     traits_type
   >;
 
@@ -103,8 +103,8 @@ struct retain_ptr {
   >;
 
   static_assert(std::disjunction_v<
-    std::is_same<reset_action, retain_t>
-    std::is_same<reset_action, adopt_t
+    std::is_same<reset_action, retain_t>,
+    std::is_same<reset_action, adopt_t>
   >);
 
   retain_ptr (pointer ptr, retain_t) noexcept :
@@ -230,10 +230,10 @@ bool operator == (nullptr_t, retain_ptr<T, R> const& rhs) noexcept {
 }
 
 template <class T, class R>
-bool operator != (retain_ptr<T, R> const& rhs) noexcept {
+bool operator != (nullptr_t, retain_ptr<T, R> const& rhs) noexcept {
   return nullptr != rhs.get();
 }
 
-}} /* namespace apex::v1 */
+} /* namespace apex */
 
 #endif /* APEX_MEMORY_RETAIN_HPP */

@@ -221,6 +221,10 @@ concept strict_weak_order = relation<R, T, U>;
 
 #endif /* APEX_CHECK_API(concepts, 202002) */
 
+// custom concepts
+template <class T, class U>
+concept different_from = requires { requires not same_as<T, U>; };
+
 } /* namespace apex */
 
 #endif /* APEX_CORE_CONCEPTS_HPP */
