@@ -12,28 +12,47 @@
 
 namespace apex::mixin::impl {
 
-template <class T> concept has_element_type = requires { typename T::element_type; };
-template <class T> concept has_pointer = requires { typename T::pointer; };
+template <class> struct pointer_type_of;
 
-template <class T> requires has_element_type<T>
-std::add_pointer_t<typename T::element_type> pointer_type_of () noexcept;
+template <class T>
+concept pointer_only = requires {
+  requires not alias_element_type<T>;
+  requires alias_pointer<T>;
+};
 
-template <class T> requires has_pointer<T>
-typename T::pointer pointer_type_of () noexcept;
+template <class T>
+concept element_only = requires {
+  requires not alias_pointer<T>;
+  requires alias_element_type<T>;
+};
 
-template <class T> using pointer_type_of_t = decltype(pointer_type_of<remove_cvref_t<T>>());
+template <class T>
+concept element_and_pointer = alias_element_type<T> and alias_pointer<T>;
+
+template <element_and_pointer T> struct pointer_type_of<T> : type_identity<typename T::pointer> { };
+template <element_only T> struct pointer_type_of<T> : add_pointer<typename T::element_type> { };
+template <pointer_only T> struct pointer_type_of<T> : type_identity<typename T::pointer> { };
+
+template <class T>
+using pointer_type_of_t = typename pointer_type_of<T>::type;
 
 template <class T>
 concept handle_storage = requires (T object) {
-  requires equality_comparable_with<T, nullptr_t>;
-  requires totally_ordered<T>;
+  //requires equality_comparable_with<T, nullptr_t>;
+  //requires totally_ordered<T>;
   requires movable<T>;
 
+  // TODO: replace with better concepts later
+  requires is_default_constructible_v<T>;
+  requires is_swappable_v<T>;
+
+  typename pointer_type_of_t<T>;
+
+  //{ object.release() } noexcept -> same_as<pointer_type_of_t<T>>;
   { object.get() } noexcept -> same_as<pointer_type_of_t<T>>;
-  { static_cast<bool>(object) } noexcept;
-  { object.reset(object.get()) } noexcept;
-  { object.reset() } noexcept;
-  { *object } noexcept -> same_as<decltype(*object.get())>;
+  static_cast<bool>(object);
+  object.reset(object.get());
+  object.reset();
 };
 
 } /* namespace apex::mixin::impl */
@@ -48,20 +67,12 @@ namespace apex::mixin {
  */
 // this saves a LOT of time and energy when wrapping C APIs, of which there are
 // a great deal of in the world.
-template <class T, class Storage>
+template <class T, impl::handle_storage Storage>
 struct handle {
   using storage_type = Storage;
-  using pointer = detected_or_t<
-    std::add_pointer_t<detected_or_t<T, detect::types::element_type, storage_type>>,
-    detect::types::pointer,
-    storage_type
-  >;
+  using pointer = impl::pointer_type_of_t<remove_cvref_t<storage_type>>;
+  using handle_type = handle;
 
-  static_assert(std::is_default_constructible_v<storage_type>);
-  static_assert(std::is_move_constructible_v<storage_type>);
-//  static_assert(std::is_convertible_v<bool, storage_type>);
-  static_assert(std::is_swappable_v<storage_type>);
-  static_assert(is_detected_v<detect::pointer::dereference, storage_type>);
   static_assert(is_detected_v<detect::pointer::arrow, storage_type>);
 
   handle (std::nullptr_t) noexcept : handle { } { }
@@ -80,12 +91,13 @@ struct handle {
     using std::swap;
     swap(this->storage, that.storage);
   }
-protected:
+
   template <class... Args> requires constructible_from<storage_type, pointer, Args...>
-  handle (pointer ptr, Args&&... args)
-    noexcept(std::is_nothrow_constructible_v<storage_type, pointer, Args...>) :
+  explicit (not sizeof...(Args)) handle (pointer ptr, Args&&... args)
+    noexcept(nothrow_constructible_from<storage_type, pointer, Args...>) :
     storage { ptr, std::forward<Args>(args)... }
   { }
+protected:
   storage_type storage;
 };
 

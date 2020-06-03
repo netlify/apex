@@ -222,8 +222,27 @@ concept strict_weak_order = relation<R, T, U>;
 #endif /* APEX_CHECK_API(concepts, 202002) */
 
 // custom concepts
+template <class T>
+concept complete = requires {
+  { sizeof(remove_cvref_t<remove_pointer_t<T>>) } -> same_as<size_t>;
+};
+template <class T>
+concept incomplete = requires { requires not complete<T>; };
+
 template <class T, class U>
 concept different_from = requires { requires not same_as<T, U>; };
+
+template <class T, class... Args>
+concept nothrow_constructible_from = destructible<T>
+  and is_nothrow_constructible_v<T, Args...>;
+
+// TODO: move to a different namespace. This ends up being too 'weird' :/
+template <class T> concept alias_difference_type = requires { typename T::difference_type; };
+template <class T> concept alias_element_type = requires { typename T::element_type; };
+template <class T> concept alias_value_type = requires { typename T::value_type; };
+template <class T> concept alias_size_type = requires { typename T::size_type; };
+template <class T> concept alias_reference = requires { typename T::reference; };
+template <class T> concept alias_pointer = requires { typename T::pointer; };
 
 } /* namespace apex */
 

@@ -40,6 +40,10 @@ using ::std::decay;
 using ::std::common_type;
 using ::std::conditional;
 
+using ::std::is_nothrow_constructible;
+using ::std::is_default_constructible;
+using ::std::is_swappable;
+
 using ::std::is_lvalue_reference;
 using ::std::is_rvalue_reference;
 using ::std::is_convertible;
@@ -51,6 +55,10 @@ using ::std::is_same;
 using ::std::conjunction;
 using ::std::disjunction;
 using ::std::negation;
+
+using ::std::is_nothrow_constructible_v;
+using ::std::is_default_constructible_v;
+using ::std::is_swappable_v;
 
 using ::std::is_lvalue_reference_v;
 using ::std::is_rvalue_reference_v;
