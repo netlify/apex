@@ -2,11 +2,11 @@
 #define APEX_CORE_SPAN_HPP
 
 #include <apex/core/concepts.hpp>
+#include <apex/core/memory.hpp>
 #include <apex/core/types.hpp>
 
 #include <apex/container/array.hpp>
 #include <apex/detect/iter.hpp>
-#include <apex/memory/std.hpp>
 
 #include <iterator>
 #include <limits>

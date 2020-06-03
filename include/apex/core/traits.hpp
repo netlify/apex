@@ -42,12 +42,14 @@ using ::std::conditional;
 
 using ::std::is_nothrow_constructible;
 using ::std::is_default_constructible;
+using ::std::is_nothrow_destructible;
 using ::std::is_swappable;
 
 using ::std::is_lvalue_reference;
 using ::std::is_rvalue_reference;
 using ::std::is_convertible;
 using ::std::is_assignable;
+using ::std::is_function;
 using ::std::is_volatile;
 using ::std::is_const;
 using ::std::is_same;
@@ -58,12 +60,14 @@ using ::std::negation;
 
 using ::std::is_nothrow_constructible_v;
 using ::std::is_default_constructible_v;
+using ::std::is_nothrow_destructible_v;
 using ::std::is_swappable_v;
 
 using ::std::is_lvalue_reference_v;
 using ::std::is_rvalue_reference_v;
 using ::std::is_convertible_v;
 using ::std::is_assignable_v;
+using ::std::is_function_v;
 using ::std::is_volatile_v;
 using ::std::is_const_v;
 using ::std::is_same_v;

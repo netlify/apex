@@ -88,7 +88,7 @@ template <class T> concept signed_integral = integral<T> and std::is_signed_v<T>
 template <class T> concept unsigned_integral = integral<T> and not signed_integral<T>;
 template <class T> concept floating_point = std::is_floating_point_v<T>;
 
-template <class T> concept destructible = std::is_nothrow_destructible_v<T>;
+template <class T> concept destructible = is_nothrow_destructible_v<T>;
 template <class T, class... Args> concept constructible_from =
   destructible<T> and std::is_constructible_v<T, Args...>;
 template <class T> concept default_initializable = constructible_from<T>

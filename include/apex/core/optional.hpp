@@ -1,7 +1,7 @@
 #ifndef APEX_CORE_OPTIONAL_HPP
 #define APEX_CORE_OPTIONAL_HPP
 
-#include <apex/memory/std.hpp>
+#include <apex/memory/memory.hpp>
 
 namespace apex {
 
@@ -11,17 +11,13 @@ namespace apex {
 
 template <class T>
 struct optional final {
-  template <class... Args>
-  static constexpr auto nothrow_constructible = std::is_nothrow_constructible_v<T, Args...>;
-  template <class... Args>
-  static constexpr auto constructible_from = std::is_constructible_v<T, Args...>;
-
   using value_type = T;
 
-  template <class... Args, class=std::enable_if_t<constructible_from<Args...>>>
-  optional (in_place_t, Args&&... args) noexcept(nothrow_constructible<Args...>) :
+  template <class... Args>
+  requires constructible_from<T, Args...>
+  optional (in_place_t, Args&&... args) noexcept(is_nothrow_constructible_v<T, Args...>) :
     valid(true)
-  { construct_at(std::addressof(this->value), std::forward<Args>(args)...); }
+  { apex::construct_at(std::addressof(this->value), std::forward<Args>(args)...); }
 
   optional (optional const&) = default;
 
@@ -44,11 +40,10 @@ struct optional final {
   }
 
   template <class... Args>
-  auto emplace (Args&&... args) noexcept(nothrow_constructible<Args...>) -> std::enable_if_t<
-    constructible_from<Args...>
-  > {
-    if (*this) { destroy_at(std::addressof(this->value)); }
-    construct_at(std::addressof(this->value), std::forward<Args>(args)...);
+  requires constructible_from<Args...>
+  auto emplace (Args&&... args) noexcept(is_nothrow_constructible_v<Args...>) {
+    if (*this) { apex::destroy_at(std::addressof(this->value)); }
+    apex::construct_at(std::addressof(this->value), std::forward<Args>(args)...);
   }
 
 private:

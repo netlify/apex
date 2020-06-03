@@ -74,7 +74,6 @@ template <class T> view_ptr(T*) -> view_ptr<T>;
 template <class T>
 void swap (view_ptr<T>& lhs, view_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
 
-#if not APEX_CHECK_CXX(impl_three_way_comparison, 201907)
 template <class T, class U>
 bool operator == (view_ptr<T> const& lhs, view_ptr<U> const& rhs) noexcept {
   return lhs.get() == rhs.get();
@@ -104,7 +103,6 @@ template <class T, class U>
 bool operator < (view_ptr<T> const& lhs, view_ptr<U> const& rhs) noexcept {
   return lhs.get() < rhs.get();
 }
-#endif /* not APEX_CHECK_CXX(impl_three_way_comparison, 201907) */
 
 template <class T>
 bool operator == (view_ptr<T> const& lhs, nullptr_t) noexcept {

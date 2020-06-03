@@ -2,8 +2,7 @@
 #include <apex/sqlite/connection.hpp>
 #include <apex/sqlite/statement.hpp>
 
-#include <apex/memory/std.hpp>
-
+#include <apex/core/memory.hpp>
 #include <apex/core/scope.hpp>
 #include <apex/core/bit.hpp>
 

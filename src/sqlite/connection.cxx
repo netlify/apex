@@ -2,7 +2,7 @@
 #include <apex/sqlite/memory.hpp>
 #include <apex/sqlite/table.hpp>
 #include <apex/sqlite/error.hpp>
-#include <apex/memory/std.hpp>
+#include <apex/core/memory.hpp>
 #include <sqlite3.h>
 
 namespace apex::sqlite {

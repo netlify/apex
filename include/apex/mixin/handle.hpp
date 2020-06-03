@@ -12,8 +12,6 @@
 
 namespace apex::mixin::impl {
 
-template <class> struct pointer_type_of;
-
 template <class T>
 concept pointer_only = requires {
   requires not alias_element_type<T>;
@@ -28,6 +26,8 @@ concept element_only = requires {
 
 template <class T>
 concept element_and_pointer = alias_element_type<T> and alias_pointer<T>;
+
+template <class> struct pointer_type_of;
 
 template <element_and_pointer T> struct pointer_type_of<T> : type_identity<typename T::pointer> { };
 template <element_only T> struct pointer_type_of<T> : add_pointer<typename T::element_type> { };

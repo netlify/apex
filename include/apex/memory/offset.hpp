@@ -1,17 +1,23 @@
 #ifndef APEX_MEMORY_OFFSET_HPP
 #define APEX_MEMORY_OFFSET_HPP
 
+#include <apex/core/concepts.hpp>
+
 // offset_ptr is useful for creating zero allocation data structures within
 // a block of memory. The offset type MUST be an integral type. If it is
 // unsigned, it CANNOT be decremented.
+// Additionally, we need to specialize std::pointer_traits for this type,
+// as the difference_type is whatever we use as the offset_type
 
 namespace apex {
 inline namespace v1 {
 
 // TODO: specialize for offset_ptr<T[N]>
-template <class T, class Offset>
+template <class T, integral Offset>
 struct offset_ptr {
   using offset_type = Offset;
+
+  using difference_type = offset_type;
   using pointer = std::add_pointer_t<T>;
 
   static_assert(std::is_integral_v<Offset>);
