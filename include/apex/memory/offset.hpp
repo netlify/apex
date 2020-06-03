@@ -20,8 +20,6 @@ struct offset_ptr {
   using difference_type = offset_type;
   using pointer = std::add_pointer_t<T>;
 
-  static_assert(std::is_integral_v<Offset>);
-
   offset_ptr (offset_ptr const&) noexcept = default;
   offset_ptr () noexcept = default;
 

@@ -222,6 +222,8 @@ concept strict_weak_order = relation<R, T, U>;
 #endif /* APEX_CHECK_API(concepts, 202002) */
 
 // custom concepts
+// TODO: these should be named better. "complete" and "incomplete" are fairly
+// useless in terms of descriptivity
 template <class T>
 concept complete = requires {
   { sizeof(remove_cvref_t<remove_pointer_t<T>>) } -> same_as<size_t>;
@@ -232,6 +234,9 @@ concept incomplete = requires { requires not complete<T>; };
 template <class T, class U>
 concept different_from = requires { requires not same_as<T, U>; };
 
+template <class T> concept trivially_copyable = std::is_trivially_copyable_v<T>;
+
+// TODO: this should just be removed
 template <class T, class... Args>
 concept nothrow_constructible_from = destructible<T>
   and is_nothrow_constructible_v<T, Args...>;
