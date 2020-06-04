@@ -93,11 +93,17 @@ target_sources(apex
 
 install(TARGETS apex
   EXPORT netlify-apex
+  ARCHIVE COMPONENT Development
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(EXPORT netlify-apex
   DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/netlify-apex
+  COMPONENT Development
   NAMESPACE netlify::)
-install(DIRECTORY include/ TYPE INCLUDE FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY include/
+  TYPE INCLUDE
+  COMPONENT Development
+  FILES_MATCHING
+    PATTERN "*.hpp")
 
 if (APEX_BUILD_TESTS)
   set(CATCH_BUILD_TESTING OFF)
