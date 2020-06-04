@@ -23,6 +23,7 @@ using ::std::remove_pointer_t;
 using ::std::remove_cv_t;
 using ::std::decay_t;
 
+using ::std::invoke_result_t;
 using ::std::common_type_t;
 using ::std::conditional_t;
 
@@ -37,6 +38,7 @@ using ::std::remove_pointer;
 using ::std::remove_cv;
 using ::std::decay;
 
+using ::std::invoke_result;
 using ::std::common_type;
 using ::std::conditional;
 

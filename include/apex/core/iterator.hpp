@@ -91,6 +91,42 @@ template <
   >
 > constexpr auto ssize (C const& c) { return static_cast<R>(c.size()); }
 
+// These are custom declarations so they stay here.
+template <class Container>
+struct back_emplacer {
+  using iterator_category = std::output_iterator_tag;
+  using difference_type = void;
+  using value_type = void;
+  using reference = void;
+  using pointer = void;
+  using container_type = Container;
+
+  back_emplacer (back_emplacer const&) = default;
+  back_emplacer () = delete;
+
+  explicit back_emplacer (container_type& container) noexcept :
+    container(std::addressof(container))
+  { }
+
+  template <class T>
+  back_emplacer& operator = (T&& t)
+    noexcept(noexcept(this->container->emplace_back(std::forward<T>(t))))
+    requires requires { this->container->emplace_back(std::forward<T>(t)); }
+  {
+    this->container.emplace_back(std::forward<T>(t));
+    return *this;
+  }
+
+  back_emplacer& operator * () { return *this; }
+  back_emplacer& operator ++ () { return *this; }
+  back_emplacer& operator ++ (int) { return *this; }
+
+protected:
+  container_type* container;
+};
+
+template <class Container> back_emplacer (Container&) -> back_emplacer<Container>;
+
 } /* namespace apex */
 
 #endif /* APEX_CORE_ITERATOR_HPP */
