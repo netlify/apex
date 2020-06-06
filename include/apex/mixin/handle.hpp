@@ -40,15 +40,14 @@ template <class T>
 concept handle_storage = requires (T object) {
   //requires equality_comparable_with<T, nullptr_t>;
   //requires totally_ordered<T>;
+  //requires swappable<T>;
   requires movable<T>;
 
   // TODO: replace with better concepts later
-  requires is_default_constructible_v<T>;
   requires is_swappable_v<T>;
 
   typename pointer_type_of_t<T>;
 
-  //{ object.release() } noexcept -> same_as<pointer_type_of_t<T>>;
   { object.get() } noexcept -> same_as<pointer_type_of_t<T>>;
   static_cast<bool>(object);
   object.reset(object.get());
@@ -94,7 +93,7 @@ struct handle {
 
   template <class... Args> requires constructible_from<storage_type, pointer, Args...>
   explicit (not sizeof...(Args)) handle (pointer ptr, Args&&... args)
-    noexcept(nothrow_constructible_from<storage_type, pointer, Args...>) :
+    noexcept(is_nothrow_constructible_v<storage_type, pointer, Args...>) :
     storage { ptr, std::forward<Args>(args)... }
   { }
 protected:

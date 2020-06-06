@@ -33,6 +33,7 @@ using std::declval;
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
+// TODO: add enumeration concept
 template <class T> requires std::is_enum_v<T>
 constexpr auto to_underlying (T value) noexcept -> std::underlying_type_t<T> {
   return static_cast<std::underlying_type_t<T>>(value);

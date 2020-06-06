@@ -29,13 +29,15 @@ using f32 = float;
 
 struct empty { };
 
+// implementation of std::ignore, but placed into a header that *doesn't*
+// require including <tuple>
+struct ignore_t final {
+  template <class T>
+  constexpr ignore_t const& operator = (T&&) const noexcept { return *this; }
+};
+
+inline constexpr auto ignore = ignore_t { };
+
 } /* namespace apex */
-
-// Some 'default' types
-namespace apex::defaults {
-
-struct difference_type_t { using difference_type = ptrdiff_t; };
-
-} /* namespace apex::defaults */
 
 #endif /* APEX_CORE_TYPES_HPP */

@@ -222,26 +222,23 @@ concept strict_weak_order = relation<R, T, U>;
 #endif /* APEX_CHECK_API(concepts, 202002) */
 
 // custom concepts
-// TODO: these should be named better. "complete" and "incomplete" are fairly
-// useless in terms of descriptivity
 template <class T>
-concept complete = requires {
+concept complete_type = requires {
   { sizeof(remove_cvref_t<remove_pointer_t<T>>) } -> same_as<size_t>;
 };
 template <class T>
-concept incomplete = requires { requires not complete<T>; };
+concept incomplete_type = requires { requires not complete_type<T>; };
 
 template <class T, class U>
 concept different_from = requires { requires not same_as<T, U>; };
 
+// If a type meets this, it is memcpy-able. We can use this for out bit_cast
+// implementation.
 template <class T> concept trivially_copyable = std::is_trivially_copyable_v<T>;
+template <class T> concept standard_layout = std::is_standard_layout_v<T>;
 
-// TODO: this should just be removed
-template <class T, class... Args>
-concept nothrow_constructible_from = destructible<T>
-  and is_nothrow_constructible_v<T, Args...>;
-
-// TODO: move to a different namespace. This ends up being too 'weird' :/
+// TODO: move to a 'check' namespace. i.e., 'check::difference_type'. It rolls
+// off the tongue better
 template <class T> concept alias_difference_type = requires { typename T::difference_type; };
 template <class T> concept alias_element_type = requires { typename T::element_type; };
 template <class T> concept alias_value_type = requires { typename T::value_type; };
