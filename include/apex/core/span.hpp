@@ -3,9 +3,9 @@
 
 #include <apex/core/concepts.hpp>
 #include <apex/core/memory.hpp>
+#include <apex/core/array.hpp>
 #include <apex/core/types.hpp>
 
-#include <apex/container/array.hpp>
 #include <apex/detect/iter.hpp>
 
 #include <iterator>
