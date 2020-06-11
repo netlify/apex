@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 # TODO: Look into using IXM at some point once it's stable :)
 project(apex
+  HOMEPAGE_URL "https://github.com/netlify/apex"
   VERSION 0.1.0
-  LANGUAGES CXX)
+  LANGUAGES CXX C)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")

@@ -1,12 +1,13 @@
 #ifndef APEX_CORE_SCOPE_HPP
 #define APEX_CORE_SCOPE_HPP
 
+#include <apex/core/concepts.hpp>
+
 #include <functional>
 #include <exception>
 #include <limits>
 
-namespace apex {
-namespace impl {
+namespace apex::impl {
 
 struct scope_exit_policy {
   void release () noexcept { this->execute = false; }
@@ -36,13 +37,15 @@ private:
   int errors { };
 };
 
-} /* namespace impl */
+} /* namespace apex::impl */
+
+namespace apex {
 
 template <class Fn, class Policy>
 struct basic_scope_exit : Policy {
   using policy_type = Policy;
 
-  template <class F>
+  template <constructible_from<Fn> F>
   basic_scope_exit (F&& function) noexcept :
     policy_type { },
     function { std::forward<F>(function) }
@@ -66,17 +69,17 @@ private:
 };
 
 template <class Fn>
-struct scope_failure final :
+struct [[nodiscard]] scope_failure final :
   basic_scope_exit<Fn, impl::scope_failure_policy>
 { };
 
 template <class Fn>
-struct scope_success final :
+struct [[nodiscard]] scope_success final :
   basic_scope_exit<Fn, impl::scope_success_policy>
 { };
 
 template <class Fn>
-struct scope_exit final :
+struct [[nodiscard]] scope_exit final :
   basic_scope_exit<Fn, impl::scope_exit_policy>
 { };
 
