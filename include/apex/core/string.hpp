@@ -91,7 +91,21 @@ struct basic_zstring_view {
 
   explicit operator view_type () const noexcept { return { this->data(), this->size() }; }
 
-  // TODO: Replace these with operator <=> when possible
+  // TODO: Replace all comparison operators with the code below.
+  // template <class Allocator>
+  // constexpr auto operator <=> (string_type<Allocator> const& that) const noexcept {
+  //   return static_cas<<view_type>(*this) <=> that;
+  // }
+  // constexpr auto operator <=> (basic_zstring_view const& that) const noexcept {
+  //   return *this <=> static_cast<view_type>(that);
+  // }
+  // constexpr auto operator <=> (view_type const& that) const noexcept {
+  //   return static_cast<view_type>(*this) <=> that;
+  // }
+  // constexpr auto operator <=> (const_pointer that) const noexcept {
+  //   return static_cast<view_type>(*this) <=> that;
+  // }
+
   constexpr bool operator == (basic_zstring_view const& that) const noexcept {
     return this->size() == that.size() and this->compare(that) == 0;
   }
@@ -277,14 +291,17 @@ struct basic_zstring_view {
   // TODO: size_type find(...)
   //
   // TODO: size_type rfind(...)
-  // TODO: 
 
 private:
-  pointer str { "" };
+  pointer str { nullptr };
   size_type len { 0 };
 };
 
 using zstring_view = basic_zstring_view<char>;
+
+using case_zstring_view = basic_zstring_view<char, case_insensitive_traits>;
+using case_string_view = std::basic_string_view<char, case_insensitive_traits>;
+using case_string = std::basic_string<char, case_insensitive_traits, std::allocator<char>>;
 
 } /* namespace apex */
 

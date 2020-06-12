@@ -1,7 +1,7 @@
 #ifndef APEX_MEMORY_RETAIN_HPP
 #define APEX_MEMORY_RETAIN_HPP
 
-#include <apex/core/traits.hpp>
+#include <apex/core/concepts.hpp>
 
 #include <memory>
 #include <atomic>
@@ -154,7 +154,9 @@ struct retain_ptr {
     swap(this->ptr, that.ptr);
   }
 
-  explicit operator bool () const noexcept { return this->get(); }
+  explicit operator bool () const noexcept
+    requires convertible_to<pointer, bool>
+  { return this->get(); }
   decltype(auto) operator * () const noexcept { return *this->get(); }
   pointer operator -> () const noexcept { return this->get(); }
 
