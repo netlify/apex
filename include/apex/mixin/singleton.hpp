@@ -3,9 +3,12 @@
 
 #include <apex/core/concepts.hpp>
 
+// This requires more work. The singleton<T> type should, honestly, be hidden
+// behind a detail:: namespace. Additionally, this isn't really a mixin, is it?
+
 namespace apex {
 
-template <class T> requires default_initializable
+template <default_initializable T>
 struct singleton {
   singleton (singleton const&) = delete;
   singleton () = delete;

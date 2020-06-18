@@ -42,9 +42,15 @@ using ::std::invoke_result;
 using ::std::common_type;
 using ::std::conditional;
 
+using ::std::is_nothrow_copy_constructible;
+using ::std::is_nothrow_move_constructible;
 using ::std::is_nothrow_constructible;
-using ::std::is_default_constructible;
 using ::std::is_nothrow_destructible;
+using ::std::is_nothrow_swappable;
+using ::std::is_nothrow_invocable;
+
+using ::std::is_default_constructible;
+using ::std::is_constructible;
 using ::std::is_swappable;
 
 using ::std::is_lvalue_reference;
@@ -53,16 +59,25 @@ using ::std::is_convertible;
 using ::std::is_assignable;
 using ::std::is_function;
 using ::std::is_volatile;
+using ::std::is_object;
+using ::std::is_scalar;
 using ::std::is_const;
+using ::std::is_void;
 using ::std::is_same;
 
 using ::std::conjunction;
 using ::std::disjunction;
 using ::std::negation;
 
+using ::std::is_nothrow_copy_constructible_v;
+using ::std::is_nothrow_move_constructible_v;
 using ::std::is_nothrow_constructible_v;
-using ::std::is_default_constructible_v;
 using ::std::is_nothrow_destructible_v;
+using ::std::is_nothrow_swappable_v;
+using ::std::is_nothrow_invocable_v;
+
+using ::std::is_default_constructible_v;
+using ::std::is_constructible_v;
 using ::std::is_swappable_v;
 
 using ::std::is_lvalue_reference_v;
@@ -71,7 +86,10 @@ using ::std::is_convertible_v;
 using ::std::is_assignable_v;
 using ::std::is_function_v;
 using ::std::is_volatile_v;
+using ::std::is_object_v;
+using ::std::is_scalar_v;
 using ::std::is_const_v;
+using ::std::is_void_v;
 using ::std::is_same_v;
 
 using ::std::conjunction_v;

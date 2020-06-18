@@ -3,7 +3,7 @@
 
 #include <filesystem>
 
-#include <apex/core/outcome.hpp>
+//#include <apex/core/outcome.hpp>
 
 struct sqlite3;
 
@@ -23,15 +23,15 @@ struct connection {
   using handle_type = std::unique_ptr<sqlite3>;
   using pointer = handle_type::pointer;
 
-  static outcome<connection, std::error_code> temporary () noexcept;
-
-  static outcome<connection, std::error_code> memory (std::string const&) noexcept;
-  static outcome<connection, std::error_code> memory (char const*) noexcept;
-  static outcome<connection, std::error_code> memory () noexcept;
-
-  static outcome<connection, std::error_code> create (std::filesystem::path const&) noexcept;
-  static outcome<connection, std::error_code> edit (std::filesystem::path const&) noexcept;
-  static outcome<connection, std::error_code> open (std::filesystem::path const&) noexcept;
+//  static outcome<connection, std::error_code> temporary () noexcept;
+//
+//  static outcome<connection, std::error_code> memory (std::string const&) noexcept;
+//  static outcome<connection, std::error_code> memory (char const*) noexcept;
+//  static outcome<connection, std::error_code> memory () noexcept;
+//
+//  static outcome<connection, std::error_code> create (std::filesystem::path const&) noexcept;
+//  static outcome<connection, std::error_code> edit (std::filesystem::path const&) noexcept;
+//  static outcome<connection, std::error_code> open (std::filesystem::path const&) noexcept;
 
 
   void swap (connection&) noexcept;

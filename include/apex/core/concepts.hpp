@@ -232,19 +232,12 @@ concept incomplete_type = requires { requires not complete_type<T>; };
 template <class T, class U>
 concept different_from = requires { requires not same_as<T, U>; };
 
-// If a type meets this, it is memcpy-able. We can use this for out bit_cast
+// If a type meets this, it is memcpy-able. We can use this for our bit_cast
 // implementation.
 template <class T> concept trivially_copyable = std::is_trivially_copyable_v<T>;
+template <class T> concept nontrivially_copyable = not trivially_copyable<T>;
 template <class T> concept standard_layout = std::is_standard_layout_v<T>;
 
-// TODO: move to a 'check' namespace. i.e., 'check::difference_type'. It rolls
-// off the tongue better
-template <class T> concept alias_difference_type = requires { typename T::difference_type; };
-template <class T> concept alias_element_type = requires { typename T::element_type; };
-template <class T> concept alias_value_type = requires { typename T::value_type; };
-template <class T> concept alias_size_type = requires { typename T::size_type; };
-template <class T> concept alias_reference = requires { typename T::reference; };
-template <class T> concept alias_pointer = requires { typename T::pointer; };
 
 } /* namespace apex */
 

@@ -2,9 +2,92 @@
 #define APEX_CORE_OUTCOME_HPP
 
 #include <apex/core/concepts.hpp>
+#include <apex/core/memory.hpp>
 #include <utility>
 
 namespace apex {
+
+template <class T, class E>
+struct outcome final {
+
+  using value_type = T;
+  using error_type = E;
+
+  static constexpr bool is_nothrow_copy_constructible =
+    is_nothrow_copy_constructible_v<value_type> and
+    is_nothrow_copy_constructible_v<error_type>;
+
+  static constexpr bool is_nothrow_move_constructible =
+    is_nothrow_move_constructible_v<value_type> and
+    is_nothrow_move_constructible_v<error_type>;
+
+  template <class... Args>
+  requires constructible_from<value_type, Args...>
+    and different_from<value_type, error_type>
+    and is_object_v<value_type>
+  constexpr outcome (std::in_place_type_t<value_type>, Args&&... args) 
+    noexcept(is_nothrow_constructible_v<value_type, Args...>) :
+    success { std::forward<Args>(args)... }
+    state { true }
+  { }
+
+  template <class... Args>
+  requires constructible_from<error_type, Args...>
+    and different_from<value_type, error_type>
+    and is_object_v<error_type>
+  constexpr outcome (std::in_place_type_t<error_type>, Args&&... args) :
+    failure { std::forward<Args>(args)... }
+    state { false }
+  { }
+
+  constexpr outcome (value_type const& value)
+    noexcept(is_nothrow_constructible_v<value_type>)
+    requires different_from<value_type, error_type> 
+      and copy_constructible<value_type> :
+    outcome { std::in_place_type<value_type>, value }
+  { }
+
+  constexpr outcome (value_type&& value)
+    noexcept(is_nothrow_move_constructible_v<value_type>)
+    requires different_from<value_type, error_type> 
+      and move_constructible<value_type> :
+    outcome { std::in_place_type<value_type>, std::move(value) }
+  { }
+
+  outcome (outcome const& that)
+    noexcept(is_nothrow_copy_constructible)
+    requires :
+    state { that.state }
+  {
+    if (*this) { apex::construct_at(std::addressof(this->success), that.success); }
+    else { apex::construct_at(std::addressof(this->failure), that.failure); }
+  }
+
+  outcome (outcome&& that) noexcept(is_nothrow_move_constructible) :
+    state { that.state }
+  {
+    if (*this) { apex::construct_at(std::addressof(this->success), std::move(that.success)); }
+    else { apex::construct_at(std::addressof(this->failure), std::move(that.failure)); }
+  }
+
+  outcome () = delete;
+
+  explicit operator bool () const noexcept { return this->state; }
+
+  // requires not is_lvalue_reference_v<value_type>
+  value_type const& operator * () const noexcept { return this->success; }
+  // requires not is_lvalue_reference_v<value_type>
+  value_type& operator * () noexcept { return this->success; }
+  // requires is_lvalue_reference_v<value_type>
+  // value_type operator * () const noexcept { return this->success; }
+
+private:
+  union {
+    value_type success;
+    error_type failure;
+  };
+  bool state;
+};
 
 // TODO: This needs a once over to make everything noexcept-clean
 // TODO: There *does* need to be a specialization for references, because

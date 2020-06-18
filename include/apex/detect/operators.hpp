@@ -57,6 +57,6 @@ template <class T, class I> using subscript = decltype(declval<T>()[declval<I>()
 template <class T> using dereference = decltype(*declval<T>());
 template <class T> using arrow = decltype(declval<T>().operator->());
 
-} /* namespace apex::detect::object */
+} /* namespace apex::detect::pointer */
 
 #endif /* APEX_DETECT_OPERATORS_HPP */

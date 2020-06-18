@@ -3,6 +3,10 @@
 
 #include <apex/core/iterator.hpp>
 
+// TODO: Write an *even better* version of this
+// See https://vector-of-bool.github.io/2020/06/13/cpp20-iter-facade.html 
+// for more details
+
 // XXX: This mixin is kind of a mess because we don't have all the ranges::
 // concepts available to us. Currently we don't guarantee that
 // iterator_traits::dereference returns a reference which turns operator ->
@@ -63,6 +67,9 @@ concept nothrow_iterator_distance_to = requires (cref_t<I> i, cref_t<S> s) {
   { i.distance_to(s) } noexcept -> same_as<iter_difference_t<remove_cvref_t<I>>>;
 };
 
+// TODO: rewrite iterator_traits in terms of the iterator mixin, rather than
+// the other way around!
+
 // Used as a default traits type to 'get' implementation information for the
 // iterator mixin. This is needed due to how CRTP is implemented within the
 // language.
@@ -79,17 +86,17 @@ struct iterator_traits {
   using difference_type = iter_difference_t<iterator_type>;
 
   [[nodiscard]] static decltype(auto) dereference (iterator_type const& iter)
-    noexcept(nothrow_iterator_dereference<iterator_type>)
+    noexcept(noexcept(iter.dereference()))
     requires iterator_dereference<iterator_type>
   { return iter.dereference(); }
 
   static void increment (iterator_type& iter)
-    noexcept(nothrow_iterator_increment<iterator_type>)
+    noexcept(noexcept(iter.increment()))
     requires iterator_increment<iterator_type>
   { iter.increment(); }
 
   static void decrement (iterator_type& iter)
-    noexcept(nothrow_iterator_decrement<iterator_type>)
+    noexcept(noexcept(iter.decrement()))
     requires iterator_decrement<iterator_type>
   { iter.decrement(); }
 
@@ -169,9 +176,9 @@ struct iterator {
   ) { return *(this->self() + n); }
 
   // random-access-iterator
-  decltype(auto) operator += (difference_type n) noexcept(
-    noexcept(traits_type::advance(this->self(), n))
-  ) { traits_type::advance(this->self(), -n); return this->self(); }
+  decltype(auto) operator += (difference_type n)
+    noexcept(noexcept(traits_type::advance(this->self(), n)))
+  { traits_type::advance(this->self(), -n); return this->self(); }
 
   // random-access-iterator
   decltype(auto) operator -= (difference_type n)
@@ -213,7 +220,7 @@ struct iterator {
   // forward-iterator
   derived_type operator ++ (int) noexcept(std::is_nothrow_copy_constructible_v<derived_type>) {
     derived_type that { this->self() };
-    --*this;
+    ++*this;
     return that;
   }
 
