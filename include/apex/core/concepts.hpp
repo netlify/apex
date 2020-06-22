@@ -20,6 +20,55 @@ template <class T, class U> concept same_as = is_same_v<T, U>;
 } /* namespace impl */
 #endif /* not APEX_CHECK_API(concepts, 202002) */
 
+#if not APEX_CHECK_API(concepts, 202002)
+// TODO: This needs to be moved into a core/ranges.hpp file
+namespace apex::detail {
+
+template <class T, size_t N> void swap (T(&)[N], T(&)[N]) = delete;
+template <class T> void swap (T&, T&) = delete;
+
+struct swappable {
+  template <class T, class U>
+  constexpr decltype(auto) operator () (T&& t, U&& u) const
+  noexcept(noexcept(swappable::call(std::forward<T>(t), std::forward<U>(u), prefer<2>))) {
+    return swappable::call(std::forward<T>(t), std::forward<U>(u), prefer<2>);
+  }
+private:
+  // TODO: these could just use requires... couldn't it? 
+  template <class T, class U>
+  static constexpr auto call (T&& t, U&& u, preference<2>)
+  noexcept(noexcept(swap(std::forward<T>(t), std::forward<U>(u)))) {
+    return static_cast<void>(swap(std::forward<T>(t), std::forward<U>));
+  }
+
+  template <class T, class U, size_t N, class S = swappable>
+  static constexpr void call (T (&t)[N], U(&u)[N], preference<1>)
+  noexcept(noexcept(declval<S&>()(*t, *u))) {
+    for (size_t idx = 0; idx < N; ++idx) {
+      swappable::call(t[idx], u[idx], prefer<2>);
+    }
+  }
+
+  template <class T>
+  requires std::is_move_constructible_v<T> and std::is_assignable_v<T&, T>
+  static constexpr void call (T& a, T& b, preference<0>)
+  noexcept(is_nothrow_move_constructible_v<T> and std::is_nothrow_assignable_v<T&, T>) {
+    auto temp = std::move(a);
+    a = std::move(b);
+    b = std::move(temp);
+  }
+};
+
+} /* namespace apex::detail */
+
+namespace apex::ranges {
+
+inline constexpr auto swap = detail::swappable { };
+
+} /* namespace apex::ranges */
+
+#endif /* not APEX_CHECK_API(concepts, 202002) */
+
 namespace apex {
 
 #if APEX_CHECK_API(concepts, 202002)
@@ -111,7 +160,8 @@ concept assignable_from = is_lvalue_reference_v<LHS>
     { lhs = std::forward<RHS>(rhs) } -> same_as<LHS>;
   };
 // NOTE: This is currently incorrect, but we don't have ranges::swap at the moment
-//template <class T> concept swappable = std::is_swappable_v<T>;
+template <class T>
+concept swappable = requires (T& a, T& b) { ranges::swap(a, b); };
 //template <class T, class U>
 //concept swappable_with = common_reference_with<T, U> and requires (T&& t, U&& u) {
 //  std::swap(std::forward<T>(t), std::forward<T>(t));

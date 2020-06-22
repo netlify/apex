@@ -64,11 +64,10 @@ private:
 
 } /* namespace impl */
 
-template <class T, size_t Extent=dynamic_extent>
+template <complete_type T, size_t Extent=dynamic_extent>
 struct span {
   static_assert(not std::is_abstract_v<T>);
   static_assert(std::is_object_v<T>);
-  static_assert(is_complete_v<T>);
 
   using difference_type = ptrdiff_t;
   using size_type = size_t;

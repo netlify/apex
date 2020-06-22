@@ -222,7 +222,7 @@ struct basic_zstring_view {
   }
   
   constexpr const_reverse_iterator rend () const noexcept {
-    return const_reverse_iterator { this->begin() };
+    return const_reverse_iterator { this->begin() - 1 };
   }
 
   constexpr const_iterator begin () const noexcept { return this->data(); }

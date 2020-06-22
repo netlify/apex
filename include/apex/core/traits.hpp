@@ -183,7 +183,7 @@ namespace impl {
 template <class, class> struct common_ref;
 
 template <class A, class B>
-using meta_trans_other_3_6 =  add_rvalue_reference_t<
+using meta_trans_other_3_6_t =  add_rvalue_reference_t<
   remove_reference_t<
     common_ref<
       remove_reference_t<A>,
@@ -206,29 +206,39 @@ struct xref {
 template <class X, class Y>
 using cond_res = decltype(false ? std::declval<X(&)()>() : std::declval<Y(&)()>());
 
-// [meta.trans.other]/3.5
 template <class A, class B>
-requires is_lvalue_reference_v<A> and is_lvalue_reference_v<B> and requires {
+concept meta_trans_other_3_5 = requires {
+  requires is_lvalue_reference_v<A>;
+  requires is_lvalue_reference_v<B>;
   typename cond_res<
     copy_cv_t<remove_reference_t<A>, remove_reference_t<B>>&,
     copy_cv_t<remove_reference_t<B>, remove_reference_t<A>>&
   >;
-} struct common_ref<A, B> : type_identity<
+};
+
+// [meta.trans.other]/3.5
+template <class A, class B>
+requires meta_trans_other_3_5<A, B>
+struct common_ref<A, B> : type_identity<
   cond_res<
     copy_cv_t<remove_reference_t<A>, remove_reference_t<B>>&,
     copy_cv_t<remove_reference_t<B>, remove_reference_t<A>>&
   >
 > { };
 
-// [meta.trans.other]/3.6
 template <class A, class B>
-requires requires {
-  typename meta_trans_other_3_6<A, B>;
+concept meta_trans_other_3_6 = requires {
+  typename meta_trans_other_3_6_t<A, B>;
   requires is_rvalue_reference_v<A>;
   requires is_rvalue_reference_v<B>;
-  requires is_convertible_v<A, meta_trans_other_3_6<A, B>>;
-  requires is_convertible_v<B, meta_trans_other_3_6<A, B>>;
-} struct common_ref<A, B> : type_identity<meta_trans_other_3_6<A, B>> { };
+  requires is_convertible_v<A, meta_trans_other_3_6_t<A, B>>;
+  requires is_convertible_v<B, meta_trans_other_3_6_t<A, B>>;
+};
+
+// [meta.trans.other]/3.6
+template <class A, class B>
+requires meta_trans_other_3_6<A, B>
+struct common_ref<A, B> : type_identity<meta_trans_other_3_6_t<A, B>> { };
 
 // [meta.trans.other]/3.7
 template <class A, class B>
@@ -353,14 +363,6 @@ struct is_empty_base : std::conjunction<
 template <class T>
 inline constexpr auto is_empty_base_v = is_empty_base<T>::value;
 
-template <class T>
-struct is_complete :
-  is_detected<detect::types::complete, T>
-{ };
-
-template <class T>
-inline constexpr auto is_complete_v = is_complete<T>::value;
-
 template <class, template <class...> class>
 struct is_specialization_of : std::false_type { };
 
@@ -380,6 +382,13 @@ template <auto V>
 inline constexpr auto constant = std::integral_constant<decltype(V), V> { };
 
 template <class... Ts> inline constexpr auto always_false = false;
+
+/* Used for prioritizing possibly ambiguous overloads. I is the "level", where
+ * higher numbers mean a higher level of preference
+ */
+template <size_t I> struct preference : preference<I - 1> { };
+template <> struct preference<0> { };
+template <size_t I> inline constexpr auto prefer = preference<I> { };
 
 } /* namespace apex */
 
