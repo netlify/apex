@@ -1,9 +1,10 @@
 #include <apex/core/functional.hpp>
 
 TEST_CASE("bind_front") {
-  constexpr auto call = apex::bind_front(std::move([] (auto&& x, auto&& y) {
+  auto function = [] (auto&& x, auto&& y) {
     return std::forward<decltype(x)>(x) + std::forward<decltype(y)>(y);
-  }), 4);
+  };
+  constexpr auto call = apex::bind_front(std::move(function), 4);
   REQUIRE(call(5) == 9);
 }
 
