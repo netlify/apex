@@ -4,7 +4,7 @@
 #include <apex/core/concepts.hpp>
 #include <apex/core/memory.hpp>
 #include <apex/core/array.hpp>
-#include <apex/core/types.hpp>
+#include <apex/core/prelude.hpp>
 
 #include <apex/detect/iter.hpp>
 
@@ -29,6 +29,12 @@ namespace apex {
 inline constexpr size_t dynamic_extent = std::numeric_limits<size_t>::max();
 
 namespace impl {
+
+// This is temporary *for now*
+template <class R>
+concept span_range = requires (R r) {
+  { r.size() } -> convertible_to<size_t>;
+};
 
 template <class T, size_t N>
 struct span final {
@@ -125,22 +131,14 @@ struct span {
     span { array.data(), N }
   { }
 
-  template <
-    class R,
-    class=std::enable_if_t<
-      std::conjunction_v<
-        std::negation<
-          std::disjunction<
-            std::is_array<remove_cvref_t<R>>,
-            is_bounded_specialization_of<remove_cvref_t<R>, std::array>,
-            is_bounded_specialization_of<remove_cvref_t<R>, span>
-          >
-        >,
-        is_detected_convertible<size_type, detect::iter::size, R>,
-        is_detected_convertible<pointer, detect::iter::data, R>
-      >
-    >
-  > constexpr span (R&& r) noexcept :
+  template <class R>
+  requires requires (R r) {
+    requires not std::is_array_v<remove_cvref_t<R>>
+      or not is_bounded_specialization_of_v<remove_cvref_t<R>, std::array>
+      or not is_bounded_specialization_of_v<remove_cvref_t<R>, span>;
+    { r.size() } -> convertible_to<size_type>;
+    { r.data() } -> convertible_to<pointer>;
+  } constexpr span (R&& r) noexcept :
     span { std::data(std::forward<R>(r)), std::size(std::forward<R>(r)) }
   { }
 

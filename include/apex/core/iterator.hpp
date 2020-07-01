@@ -1,73 +1,58 @@
 #ifndef APEX_CORE_ITERATOR_HPP
 #define APEX_CORE_ITERATOR_HPP
 
+
+
 #include <apex/detect/types.hpp>
+#include <apex/check/alias.hpp>
+
 #include <apex/core/concepts.hpp>
-#include <apex/core/types.hpp>
+#include <apex/core/prelude.hpp>
 #include <iterator>
 
 // TODO: most of these declarations need to be put behind a std shim
 
+namespace apex::detail {
+
+template <class> struct cond_value_type { };
+template <class T> requires is_object_v<T>
+struct cond_value_type<T> : remove_cv<T> { };
+
+} /* namespace apex::detail */
+
 namespace apex {
 
-template <class T>
-concept referenceable = requires {
-  requires is_lvalue_reference_v<T>;
-  requires not same_as<T, void>;
-};
-
-template <class T>
-concept dereferenceable = requires (T& t) { *t; };
-
-template <class> struct incrementable_traits { };
-template <class T>
-struct incrementable_traits<T const> :
-  incrementable_traits<T>
-{ };
-template <class T> requires (not std::is_object_v<T>)
-struct incrementable_traits<T*> { };
-template <class T> requires std::is_object_v<T>
-struct incrementable_traits<T*> { using difference_type = ptrdiff_t; };
-template <class T> requires requires { typename T::difference_type; }
-struct incrementable_traits<T> {
-  using difference_type = typename T::difference_type;
-};
-
-template <class T> requires dereferenceable<T>
+template <dereferenceable T>
 using iter_reference_t = decltype(*std::declval<T&>());
 
-// TODO: use the correct definition (though I doubt we'll need it)
+template <class> struct indirectly_readable_traits { };
 template <class T>
-using iter_difference_t = detected_or_t<
-  detected_or_t<
-    empty,
-    detect::types::difference_type,
-    incrementable_traits<remove_cvref_t<T>>
-  >,
-  detect::types::difference_type,
-  std::iterator_traits<remove_cvref_t<T>>
->;
+struct indirectly_readable_traits<T*> : detail::cond_value_type<T> { };
 
-// XXX: Not a proper implementation :/
-template <class I>
-concept weakly_incrementable = default_initializable<I>
-  and movable<I>
-  and requires (I i) {
-    requires signed_integral<iter_difference_t<I>>;
-    { ++i } -> same_as<I&>;
-    i++;
-  };
+template <class T> requires is_array_v<T>
+struct indirectly_readable_traits<T> : remove_cv<remove_extent_t<T>> { };
+
+template <class T>
+struct indirectly_readable_traits<T const> : indirectly_readable_traits<T> { };
+
+template <apex::check::value_type T> requires (not apex::check::element_type<T>)
+struct indirectly_readable_traits<T> :
+  detail::cond_value_type<typename T::value_type>
+{ };
+
+template <apex::check::element_type T> requires (not apex::check::value_type<T>)
+struct indirectly_readable_traits<T> :
+  detail::cond_value_type<typename T::element_type>
+{ };
+
+template <class T>
+requires apex::check::element_type<T> and apex::check::value_type<T>
+struct indirectly_readable_traits<T> { };
 
 template <class I>
 concept incrementable = regular<I> and weakly_incrementable<I> and requires (I i) {
   { i++ } -> same_as<I>;
 };
-
-template <class I>
-concept input_or_output_iterator = weakly_incrementable<I>
-  and requires (I i) {
-    { *i } -> referenceable;
-  };
 
 template <class Out, class T>
 concept indirectly_writable = requires(Out&& o, T&& t) {
@@ -77,19 +62,11 @@ concept indirectly_writable = requires(Out&& o, T&& t) {
   const_cast<iter_reference_t<Out> const&&>(*std::forward<Out>(o)) = std::forward<T>(t);
 };
 
-template <class S, class I>
-concept sentinel_for = semiregular<S>
-  and input_or_output_iterator<I>
-  and weak_equality_comparable_with<S, I>;
-
-// TODO: place behind a std shim
-template <
-  class C, 
-  class R=std::common_type_t<
-    std::make_signed_t<decltype(std::declval<C const&>().size())>,
-    std::ptrdiff_t
-  >
-> constexpr auto ssize (C const& c) { return static_cast<R>(c.size()); }
+template <class C> requires requires (C const& c) { c.size(); }
+constexpr auto ssize (C const& c) {
+  using result_type = common_type_t<make_signed_t<decltype(c.size())>, ptrdiff_t>;
+  return static_cast<result_type>(c.size());
+}
 
 // These are custom declarations so they stay here.
 template <class Container>

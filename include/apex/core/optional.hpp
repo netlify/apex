@@ -5,6 +5,8 @@
 #include <apex/core/traits.hpp>
 #include <apex/core/memory.hpp>
 
+#include <optional>
+
 // We implement our own optional because std::optional
 // 1) cannot be specialized
 // 2) Does not support references due to a lot of drama.
@@ -24,7 +26,10 @@
 //  * template <predicate<value_type> F> optional filter (F&& f) noexcept(...);
 //  * optional<typename value_type::value_type> flatten () noexcept(...);
 //  * as_ref -> optional<value_type&>;
-// Eventually, we would want to add the ok_or, ok_or_else, 
+// Eventually, we would want to add the ok_or, ok_or_else, and friends that
+// are also found in Rust.
+// Additionally, we'll want to eventually add an iterator wrapper,
+// either view::maybe<T> *or* just have a .inspect member function
 namespace apex {
 
 template <class> struct optional;
@@ -73,18 +78,18 @@ struct optional<T> final {
 
   constexpr optional (optional const& that)
     noexcept(is_nothrow_copy_constructible_v<value_type>)
-    requires nontrivially_copyable<value_type> :
+    requires complexly_copyable<value_type> :
     valid(that.valid)
   { if (*this) { apex::construct_at(std::addressof(this->storage), *that); } }
 
   constexpr optional (optional&& that)
     noexcept(is_nothrow_move_constructible_v<value_type>)
-    requires nontrivially_copyable<value_type> :
+    requires complexly_copyable<value_type> :
     valid(that.valid)
   { if (*this) { apex::construct_at(std::addressof(this->storage), std::move(*that)); } }
 
   constexpr optional () noexcept = default;
-  ~optional () noexcept requires nontrivially_copyable<value_type> { this->clear(); }
+  ~optional () noexcept requires complexly_copyable<value_type> { this->clear(); }
 
   optional (optional const&) requires (not copy_constructible<value_type>) = delete;
   optional (optional&&) requires (not move_constructible<value_type>) = delete;
@@ -108,7 +113,7 @@ struct optional<T> final {
 
   constexpr optional& operator = (optional const& that)
     noexcept(is_nothrow_copy_constructible_v<value_type>)
-    requires nontrivially_copyable<value_type>
+    requires complexly_copyable<value_type>
   {
     optional(that).swap(*this);
     return *this;
@@ -116,7 +121,7 @@ struct optional<T> final {
 
   constexpr optional& operator = (optional&& that)
     noexcept(is_nothrow_move_constructible_v<value_type>)
-    requires nontrivially_copyable<value_type>
+    requires complexly_copyable<value_type>
   {
     optional(std::move(that)).swap(*this);
     return *this;

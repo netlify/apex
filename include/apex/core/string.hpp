@@ -220,7 +220,7 @@ struct basic_zstring_view {
   constexpr const_reverse_iterator rbegin () const noexcept {
     return const_reverse_iterator { this->end() };
   }
-  
+
   constexpr const_reverse_iterator rend () const noexcept {
     return const_reverse_iterator { this->begin() - 1 };
   }
@@ -256,6 +256,14 @@ struct basic_zstring_view {
 
   [[nodiscard]] bool ends_with (value_type value) const noexcept {
     return not this->empty() and traits::eq(value, this->back());
+  }
+
+  [[nodiscard]] bool starts_with (basic_zstring_view that) const noexcept {
+    return this->starts_with(view_type(that));
+  }
+
+  [[nodiscard]] bool ends_with (basic_zstring_view that) const noexcept {
+    return this->ends_with(view_type(that));
   }
 
   [[nodiscard]] bool starts_with (view_type that) const noexcept {

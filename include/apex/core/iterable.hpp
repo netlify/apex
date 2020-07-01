@@ -8,6 +8,7 @@
 // we actually have access to them. That said, this has a bit of a different
 // API than existing range-like interfaces. Effectively, every iterable<I, S>
 // is itself an iterator.
+// TODO: Remove this, as we can rely on ranges instead.
 
 namespace apex {
 

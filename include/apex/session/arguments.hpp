@@ -1,6 +1,8 @@
 #ifndef APEX_SESSION_ARGUMENTS_HPP
 #define APEX_SESSION_ARGUMENTS_HPP
 
+#include <apex/core/string.hpp>
+
 #include <string_view>
 #include <iterator>
 

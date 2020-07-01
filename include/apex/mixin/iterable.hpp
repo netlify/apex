@@ -1,6 +1,43 @@
 #ifndef APEX_MIXIN_ITERABLE_HPP
 #define APEX_MIXIN_ITERABLE_HPP
 
+#include <apex/core/iterator.hpp>
+
+namespace apex::mixin::detail {
+
+template <class I>
+concept dereference_to_value = requires (remove_cvref_t<I> const& self) {
+  requires not is_reference_v<decltype(**self)>;
+};
+
+} /* namespace apex::mixin::detail */
+
+namespace apex::mixin {
+
+// XXX: an iterable is technically an iterator that also happens to have
+// a .begin() and a .end() function
+template <class Derived, class Sentinel = Derived>
+struct iterable : protected iterator<Derived> {
+  using iterable_type = iterable;
+  using self_type = typename iterator<Derived>::self_type;
+
+  auto begin () const
+  noexcept(is_nothrow_copy_constructible_v<self_type>) {
+    return this->self();
+  }
+
+  auto end () const
+  noexcept(is_nothrow_copy_constructible_v<sentinel_type>) {
+
+  }
+
+private:
+  decltype(auto) self () const noexcept { return *static_cast<self_type const*>(*this); }
+  decltype(auto) self () noexcept { return *static_cast<self_type*>(*this); }
+};
+
+} /* namespace apex::mixin */
+
 // This is a multi-tiered customizable iterable mixin. That is, by making a
 // type 'iterable', it can then be turned into a range with little effort.
 // There are two ways to plugin an iterable type
@@ -16,6 +53,11 @@ namespace apex::mixin {
 
 template <class> struct iterable_traits;
 template <class> struct iterable;
+
+template <class I>
+concept input_iterable = requires {
+  requires check::dereference<I>;
+}
 
 template <class I>
 concept input_iterable = requires {
@@ -50,24 +92,6 @@ struct iterable {
 
   decltype(auto) operator * () const noexcept { return this->self().dereference(); }
 
-  auto operator -> () const noexcept(noexcept(std::addressof(**this)))
-    requires is_lvalue_reference_v<decltype(**std::declval<iterable_type const&>())>
-  { return std::addressof(**this); }
-
-  // noexcept is nothrow copy constructible
-  auto operator -> () const& noexcept
-    requires requires (iterable_type const& self) {
-      requires not is_reference_v<decltype(**self); 
-    }
-  { return proxy::arrow(**this); }
-
-  // noexcept is nothrow move constructible
-  auto operator -> () && noexcept
-    requires requires (iterable_type&& self) {
-      requires not is_reference_v<decltype(**self)>; 
-    }
-  { return proxy::arrow(std::move(**this)); }
-
   self_type& operator ++ ()
     noexcept(noexcept(this->self().increment()))
     requires check::increment<self_type>
@@ -85,32 +109,10 @@ struct iterable {
     return this->self();
   }
 
-  self_type operator ++ (int)
-    noexcept(is_nothrow_copy_constructible_v<self_type>)
-    requires copy_constructible<self_type>
-  {
-    auto that = this->self();
-    ++*this;
-    return that;
-  }
-
-  self_type operator -- (int)
-    noexcept(is_nothrow_copy_constructible_v<self_type>)
-    requires copy_constructible<self_type>
-  {
-    auto that = this->self();
-    --*this;
-    return that;
-  }
-
   friend bool operator == (self_type const& lhs, self_type const& rhs)
     noexcept(noexcept(lhs.equal_to(rhs)))
     requires (not detect::iterable::distance_to<self_type, self_type>)
   { return lhs.equal_to(rhs); }
-
-private:
-  decltype(auto) self () const noexcept { return *static_cast<self_type const*>(*this); }
-  decltype(auto) self () noexcept { return *static_cast<self_type*>(*this); }
 };
 
 } /* namespace apex::mixin */

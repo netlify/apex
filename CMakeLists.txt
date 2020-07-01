@@ -4,12 +4,16 @@ project(apex
   HOMEPAGE_URL "https://github.com/netlify/apex"
   VERSION 0.1.0
   LANGUAGES CXX C)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # TODO: Remove when moving to IXM
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED YES)
+
+find_package(Sphinx COMPONENTS Build)
 
 include(CheckCXXCompilerFlag)
 
@@ -22,6 +26,10 @@ include(CTest)
 cmake_dependent_option(APEX_BUILD_TESTS
   "Build Netlify Apex Unit Tests" ON
   "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;BUILD_TESTING" OFF)
+
+cmake_dependent_option(APEX_BUILD_DOCS
+  "Build the Netlify Apex Documentation" ON
+  "CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME;TARGET Sphinx::Build" OFF)
 
 check_cxx_compiler_flag(-Wstrict-aliasing CAN_WARN_STRICT_ALIASING)
 check_cxx_compiler_flag(-Wuninitialized CAN_WARN_UNINITIALIZED)
@@ -137,6 +145,7 @@ if (APEX_BUILD_TESTS)
   target_compile_options(${target}
     PUBLIC
       $<$<AND:$<CXX_COMPILER_ID:Clang>,$<PLATFORM_ID:Windows>>:-fansi-escape-codes>
+      #$<$<COMPILE_LANG_AND_ID:CXX,Clang>:-stdlib=libc++>
       $<$<CXX_COMPILER_ID:Clang>:-fcolor-diagnostics>
       $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
       $<$<AND:$<CXX_COMPILER_ID:GNU,Clang>,$<CONFIG:Debug>>:-ggdb>
@@ -151,6 +160,7 @@ if (APEX_BUILD_TESTS)
       ${--warn-extra})
   target_link_options(${target}
     PUBLIC
+      #$<$<COMPILE_LANG_AND_ID:CXX,Clang>:-stdlib=libc++>
       ${--sanitize-address})
 
   file(GLOB_RECURSE sources
@@ -165,4 +175,10 @@ if (APEX_BUILD_TESTS)
     target_sources(${target} PRIVATE "${PROJECT_SOURCE_DIR}/tests/${source}")
     target_link_libraries(${target} PRIVATE netlify::apex::tests)
   endforeach()
+endif()
+
+if (APEX_BUILD_DOCS)
+  add_custom_target(docs
+    COMMAND Sphinx::Build "${PROJECT_SOURCE_DIR}/docs" "${PROJECT_BINARY_DIR}/docs")
+  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_CLEAN_FILES "${PROJECT_BINARY_DIR}/docs")
 endif()

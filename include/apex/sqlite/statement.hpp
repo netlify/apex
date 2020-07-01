@@ -2,7 +2,7 @@
 #define APEX_SQLITE_STATEMENT_HPP
 
 #include <apex/core/iterable.hpp>
-#include <apex/core/types.hpp>
+#include <apex/core/prelude.hpp>
 #include <apex/core/scope.hpp>
 #include <apex/core/span.hpp>
 
@@ -38,7 +38,7 @@ struct statement {
   pointer get () const noexcept;
 
 private:
-  ptrdiff_t index (czstr) noexcept(false);
+  ptrdiff_t index (char const*) noexcept(false);
   void execute () noexcept(false);
   void clear () noexcept;
 

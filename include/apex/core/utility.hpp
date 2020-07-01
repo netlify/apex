@@ -1,10 +1,10 @@
 #ifndef APEX_CORE_UTILITY_HPP
 #define APEX_CORE_UTILITY_HPP
 
+#include <apex/core/concepts.hpp>
+
 #include <utility>
 #include <cstring>
-
-#include <apex/core/concepts.hpp>
 
 // gotta love writing shims for features we don't have :(
 #if not APEX_CHECK_API(integer_comparison_functions, 202002)

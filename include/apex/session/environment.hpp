@@ -1,10 +1,17 @@
 #ifndef APEX_SESSION_ENVIRONMENT_HPP
 #define APEX_SESSION_ENVIRONMENT_HPP
 
-#include <string_view>
-#include <string>
+#include <apex/core/string.hpp>
 
 namespace apex::session {
+
+template <class Traits>
+struct basic_environment final {
+  using traits_type = Traits;
+  using char_type = typename traits_type::char_type;
+  using pointer = add_pointer_t<char_type>;
+
+};
 
 struct environment final {
 

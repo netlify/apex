@@ -1,11 +1,176 @@
 #ifndef APEX_MIXIN_ITERATOR_HPP
 #define APEX_MIXIN_ITERATOR_HPP
 
+
 #include <apex/core/iterator.hpp>
+#include <apex/core/concepts.hpp>
+#include <apex/proxy/arrow.hpp>
 
 // TODO: Write an *even better* version of this
 // See https://vector-of-bool.github.io/2020/06/13/cpp20-iter-facade.html 
 // for more details
+
+//namespace apex::mixin::detail {
+//
+//template <class I>
+//concept distance_to = requires (remove_cvref_t<I> const& i) {
+//  { i.distance_to(i) } -> different_from<void>;
+//};
+//
+//template <class I>
+//concept equal_to = requires(remove_cvref_t<I> const& i) {
+//  { i.equal_to(i) } -> boolean;
+//};
+//
+//template <class I>
+//concept dereference = requires (remove_cvref_t<I>& self) { self.dereference(); };
+//
+//template <class I>
+//concept next = requires (remove_cvref_t<I>& self) {
+//  { self.next() } -> same_as<void>;
+//};
+//
+//template <class I>
+//concept prev = requires (remove_cvref_t<I>& self) {
+//  { self.prev() } -> same_as<void>;
+//};
+//
+//template <class I>
+//concept advance = false;requires (remove_cvref_t<I>& i, remove_cvref_t<D> d) {
+//  { i.advance(d) } -> same_as<void>;
+//};
+//
+//template <class I>
+//concept input_iterator = requires {
+//  requires dereference<I>;
+//  requires equal_to<I>;
+//  requires next<I>;
+//};
+//
+//template <class I>
+//concept forward_iterator = requires {
+//  requires copy_constructible<I>;
+//  requires input_iterator<I>;
+//};
+//
+//template <class I>
+//concept bidirectional_iterator = requires {
+//  requires forward_iterator<I>;
+//  requires prev<I>;
+//};
+//
+//template <class I>
+//concept random_access_iterator = requires {
+//  requires dereference<I>;
+//  requires distance_to<I>;
+//  requires apex::mixin::detail::advance<I>;
+//};
+//
+//template <class> struct category { };
+//
+//template <input_iterator I>
+//struct category<I> :
+//  type_identity<std::input_iterator_tag>
+//{ };
+//
+//template <forward_iterator I>
+//struct category<I> :
+//  type_identity<std::forward_iterator_tag>
+//{ };
+//
+//template <bidirectional_iterator I>
+//struct category<I> :
+//  type_identity<std::bidirectional_iterator_tag>
+//{ };
+//
+//template <random_access_iterator I>
+//struct category<I> :
+//  type_identity<std::random_access_iterator_tag>
+//{ };
+//
+//template <class T> using category_t = typename category<T>::type;
+//
+//} /* namespace apex::mixin::detail */
+//
+//namespace apex::mixin {
+//
+//template <class Derived>
+//struct iterator {
+//  using iterator_type = iterator;
+//  using self_type = Derived;
+//
+//  decltype(auto) operator * () const noexcept { return this->self().dereference(); }
+//
+//  auto operator -> () const
+//  noexcept(noexcept(std::addressof(**this)))
+//  requires is_lvalue_reference_v<decltype(**declval<iterator_type const&>())> {
+//    return std::addressof(**this);
+//  }
+//
+////  auto operator -> () const&
+////  noexcept(is_nothrow_copy_constructible_v<self_type>)
+////  requires detail::reference_to_value<I> {
+////    return proxy::arrow(**this);
+////  }
+////
+////  auto operator -> () &&
+////  noexcept(is_nothrow_move_constructible_v<self_type>)
+////  requires detail::reference_to_value<I> {
+////    return proxy::arrow(**this);
+////  }
+//
+//  self_type& operator ++ ()
+//  noexcept(noexcept(this->self().next()))
+//  requires detail::next<self_type> {
+//    this->self().next();
+//    return this->self();
+//  }
+//
+//  self_type& operator -- ()
+//  noexcept(noexcept(this->self().prev()))
+//  requires detail::prev<self_type> {
+//    this->self().prev();
+//    return this->self();
+//  }
+//
+//  self_type operator ++ (int)
+//  noexcept(is_nothrow_copy_constructible_v<self_type>)
+//  requires copy_constructible<self_type> {
+//    auto that = this->self();
+//    ++*this;
+//    return that;
+//  }
+//
+//  self_type operator -- (int)
+//  noexcept(is_nothrow_copy_constructible_v<self_type>)
+//  requires copy_constructible<self_type> {
+//    auto that = this->self();
+//    --*this;
+//    return that;
+//  }
+//
+//  friend bool operator == (self_type const& lhs, self_type const& rhs)
+//  noexcept(noexcept(lhs.equal_to(rhs)))
+//  requires apex::mixin::detail::equal_to<self_type>
+//  { return lhs.equal_to(rhs); }
+//
+//private:
+//  decltype(auto) self () const noexcept { return *static_cast<self_type const*>(*this); }
+//  decltype(auto) self () noexcept { return *static_cast<self_type*>(*this); }
+//};
+//
+//} /* namespace apex::mixin */
+//
+//template <class Iter> requires apex::derived_from<Iter, apex::mixin::iterator<Iter>>
+//struct std::iterator_traits<Iter> {
+//  using difference_type = apex::mixin::detail::difference_type<Iter>;
+//  using value_type = apex::mixin::detail::value_type<Iter>;
+//  using reference = decltype(std::declval<Iter>());
+//  using pointer = decltype(std::declval<Iter>().operator ->());
+//
+//  using iterator_category = apex::mixin::detail::category_t<Iter>;
+//  using iterator_concept = iterator_category;
+//};
 
 // XXX: This mixin is kind of a mess because we don't have all the ranges::
 // concepts available to us. Currently we don't guarantee that
@@ -42,31 +207,6 @@ concept iterator_distance_to = requires (cref_t<I> i, cref_t<S> s) {
   { i.distance_to(s) } -> same_as<iter_difference_t<remove_cvref_t<I>>>;
 };
 
-template <class I>
-concept nothrow_iterator_dereference = requires (cref_t<I> i) {
-  { i.dereference() } noexcept;
-};
-template <class I>
-concept nothrow_iterator_increment = requires (remove_cvref_t<I>& i) {
-  { i.increment() } noexcept -> same_as<void>;
-};
-template <class I, class S>
-concept nothrow_iterator_equals = requires(cref_t<I> i, cref_t<S> s) {
-  { i.equals(s) } noexcept -> boolean;
-};
-template <class I>
-concept nothrow_iterator_decrement = requires (remove_cvref_t<I>& i) {
-  { i.decrement() } noexcept -> same_as<void>;
-};
-template <class I, class D>
-concept nothrow_iterator_advance = requires(remove_cvref_t<I>& i, remove_cvref_t<D> d) {
-  { i.advance(d) } noexcept -> same_as<void>;
-};
-template <class I, class S>
-concept nothrow_iterator_distance_to = requires (cref_t<I> i, cref_t<S> s) {
-  { i.distance_to(s) } noexcept -> same_as<iter_difference_t<remove_cvref_t<I>>>;
-};
-
 // TODO: rewrite iterator_traits in terms of the iterator mixin, rather than
 // the other way around!
 
@@ -101,17 +241,14 @@ struct iterator_traits {
   { iter.decrement(); }
 
   static void advance (iterator_type& iter, difference_type n)
-    noexcept(nothrow_iterator_advance<iterator_type, difference_type>)
     requires iterator_advance<iterator_type, difference_type>
   { iter.advance(n); }
 
   [[nodiscard]] static decltype(auto) distance_to (iterator_type const& begin, sentinel_type const& end)
-    noexcept(nothrow_iterator_distance_to<iterator_type, sentinel_type>)
     requires iterator_distance_to<iterator_type, sentinel_type>
   { return begin.distance_to(end); }
 
   [[nodiscard]] static decltype(auto) equals (iterator_type const& begin, sentinel_type const& end)
-    noexcept(nothrow_iterator_equals<iterator_type, sentinel_type>)
     requires iterator_equals<iterator_type, sentinel_type>
   { return begin.equals(end); }
 

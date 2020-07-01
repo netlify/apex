@@ -4,13 +4,15 @@
 #include <type_traits>
 
 #include <apex/core/macros.hpp>
-#include <apex/core/types.hpp>
+#include <apex/core/prelude.hpp>
 
 #include <apex/detect/types.hpp>
 
 namespace apex {
 
 // TODO: finish pulling in the rest of the std traits
+using ::std::make_unsigned_t;
+using ::std::make_signed_t;
 
 using ::std::add_lvalue_reference_t;
 using ::std::add_rvalue_reference_t;
@@ -20,6 +22,7 @@ using ::std::add_const_t;
 
 using ::std::remove_reference_t;
 using ::std::remove_pointer_t;
+using ::std::remove_extent_t;
 using ::std::remove_cv_t;
 using ::std::decay_t;
 
@@ -35,6 +38,7 @@ using ::std::add_const;
 
 using ::std::remove_reference;
 using ::std::remove_pointer;
+using ::std::remove_extent;
 using ::std::remove_cv;
 using ::std::decay;
 
@@ -46,11 +50,15 @@ using ::std::is_nothrow_copy_constructible;
 using ::std::is_nothrow_move_constructible;
 using ::std::is_nothrow_constructible;
 using ::std::is_nothrow_destructible;
+using ::std::is_nothrow_convertible;
+using ::std::is_nothrow_assignable;
 using ::std::is_nothrow_swappable;
 using ::std::is_nothrow_invocable;
 
 using ::std::is_default_constructible;
+using ::std::is_move_constructible;
 using ::std::is_constructible;
+using ::std::is_assignable;
 using ::std::is_swappable;
 
 using ::std::is_lvalue_reference;
@@ -61,6 +69,7 @@ using ::std::is_function;
 using ::std::is_volatile;
 using ::std::is_object;
 using ::std::is_scalar;
+using ::std::is_array;
 using ::std::is_const;
 using ::std::is_void;
 using ::std::is_same;
@@ -73,11 +82,15 @@ using ::std::is_nothrow_copy_constructible_v;
 using ::std::is_nothrow_move_constructible_v;
 using ::std::is_nothrow_constructible_v;
 using ::std::is_nothrow_destructible_v;
+using ::std::is_nothrow_convertible_v;
+using ::std::is_nothrow_assignable_v;
 using ::std::is_nothrow_swappable_v;
 using ::std::is_nothrow_invocable_v;
 
 using ::std::is_default_constructible_v;
+using ::std::is_move_constructible_v;
 using ::std::is_constructible_v;
+using ::std::is_assignable_v;
 using ::std::is_swappable_v;
 
 using ::std::is_lvalue_reference_v;
@@ -88,6 +101,7 @@ using ::std::is_function_v;
 using ::std::is_volatile_v;
 using ::std::is_object_v;
 using ::std::is_scalar_v;
+using ::std::is_array_v;
 using ::std::is_const_v;
 using ::std::is_void_v;
 using ::std::is_same_v;
@@ -145,17 +159,6 @@ template <class T> using cref_t = add_lvalue_reference_t<add_const_t<remove_refe
   template <class T> struct type_identity { using type = T; };
   template <class T> using type_identity_t = typename type_identity<T>::type;
 #endif /* APEX_CHECK_API(type_identity, 201806) */
-
-#if APEX_CHECK_API(remove_cvref, 201711)
-  using ::std::remove_cvref_t;
-  using ::std::remove_cvref;
-#else
-  template <class T>
-  struct remove_cvref : type_identity<
-    remove_cv_t<remove_reference_t<T>>
-  > { };
-  template <class T> using remove_cvref_t = typename remove_cvref<T>::type;
-#endif /* APEX_CHECK_API(remove_cvref, 201711) */
 
 #if APEX_CHECK_API(bounded_array_traits, 201902)
   using ::std::is_unbounded_array;
@@ -378,17 +381,13 @@ struct is_bounded_specialization_of : std::false_type { };
 template <template <class, size_t> class T, class U, size_t N>
 struct is_bounded_specialization_of<T<U, N>, T> : std::true_type { };
 
+template <class T, template <class, size_t> class U>
+inline constexpr auto is_bounded_specialization_of_v = is_bounded_specialization_of<T, U> { };
+
 template <auto V>
 inline constexpr auto constant = std::integral_constant<decltype(V), V> { };
 
 template <class... Ts> inline constexpr auto always_false = false;
-
-/* Used for prioritizing possibly ambiguous overloads. I is the "level", where
- * higher numbers mean a higher level of preference
- */
-template <size_t I> struct preference : preference<I - 1> { };
-template <> struct preference<0> { };
-template <size_t I> inline constexpr auto prefer = preference<I> { };
 
 } /* namespace apex */
 

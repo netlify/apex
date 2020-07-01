@@ -2,7 +2,7 @@
 #define APEX_SQLITE_TABLE_HPP
 
 #include <apex/memory/view.hpp>
-#include <apex/core/types.hpp>
+#include <apex/core/prelude.hpp>
 
 #include <string>
 #include <vector>

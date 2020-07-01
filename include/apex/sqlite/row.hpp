@@ -12,7 +12,7 @@ namespace apex::sqlite {
 
 struct statement;
 
-struct row final : private mixin::iterator<row> {
+struct row final /*: private mixin::iterator<row>*/ {
   using handle_type = view_ptr<sqlite3_stmt>;
   using pointer = handle_type::pointer;
 
