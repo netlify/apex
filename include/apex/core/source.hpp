@@ -24,7 +24,8 @@ struct source_location {
   static constexpr source_location current (
     char const* func = __builtin_FUNCTION(),
     char const* file = __builtin_FILE(),
-    unsigned int col = 0,
+
+    unsigned int col = __builtin_COLUMN(),
     unsigned int ln = __builtin_LINE()) noexcept {
     source_location loc;
     loc.set(func, file, col, ln);
