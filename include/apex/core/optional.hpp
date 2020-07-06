@@ -39,7 +39,7 @@ struct optional<T> final {
   using value_type = T;
 
   template <class U>
-  static constexpr auto different_value = requires {
+  static constexpr bool different_value = requires {
     requires is_constructible_v<value_type, U>;
     requires is_assignable_v<value_type, U>;
     requires not is_scalar_v<value_type> or different_from<decay_t<U>, value_type>;
@@ -131,7 +131,7 @@ struct optional<T> final {
     if (not *this and not that) { return; }
     if (*this and that) {
       using ::std::swap;
-      return swap(*this, *that);
+      return swap(**this, *that);
     }
     auto& uninitialized = *this ? that : *this;
     auto& initialized = *this ? *this : that;
@@ -500,6 +500,23 @@ private:
 
 template <class T> optional (std::reference_wrapper<T>) -> optional<T&>;
 template <class T> optional (T) -> optional<T>;
+
+extern template struct optional<unsigned long long>;
+extern template struct optional<unsigned long>;
+extern template struct optional<unsigned int>;
+extern template struct optional<unsigned short>;
+
+extern template struct optional<signed long long>;
+extern template struct optional<signed long>;
+extern template struct optional<signed int>;
+extern template struct optional<signed short>;
+
+extern template struct optional<unsigned char>;
+extern template struct optional<signed char>;
+extern template struct optional<char>;
+
+extern template struct optional<double>;
+extern template struct optional<float>;
 
 
 //template <class T, std::three_way_comparable_with<T> U>
