@@ -285,6 +285,12 @@ concept weak_equality_comparable_with = requires (remove_cvref_t<T> const& t, re
 template <class T, class U>
 concept different_from = requires { requires not same_as<T, U>; };
 
+template <class T, class U>
+concept similar_to = same_as<remove_cvref_t<T>, remove_cvref_t<U>>;
+
+template <class T, class U>
+concept distinct_from = not similar_to<T, U>;
+
 template <class T>
 concept dereferenceable = requires (T& t) { *t; };
 
@@ -309,7 +315,7 @@ concept weakly_incrementable = default_initializable<I>
 template <class I>
 concept input_or_output_iterator = weakly_incrementable<I>
   and requires (I i) {
-    { *i } -> different_from<void>;
+    { *i } -> distinct_from<void>;
   };
 
 template <class S, class I>

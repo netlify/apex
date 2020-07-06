@@ -1,5 +1,5 @@
 #include <apex/core/optional.hpp>
-#include <string_view>
+#include <apex/core/string.hpp>
 
 TEST_CASE("default-constructor") {
   [[maybe_unused]] constexpr apex::optional<int> test { };
