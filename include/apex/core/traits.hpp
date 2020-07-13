@@ -1,11 +1,11 @@
-#ifndef APEX_TRAITS_HPP
-#define APEX_TRAITS_HPP
+#ifndef APEX_CORE_TRAITS_HPP
+#define APEX_CORE_TRAITS_HPP
 
+// IWYU pragma: begin_exports
 #include <type_traits>
+// IWYU pragma: end_exports
 
-#include <apex/core/macros.hpp>
 #include <apex/core/prelude.hpp>
-
 #include <apex/detect/types.hpp>
 
 namespace apex {
@@ -391,4 +391,4 @@ template <class... Ts> inline constexpr auto always_false = false;
 
 } /* namespace apex */
 
-#endif /* APEX_TRAITS_HPP */
+#endif /* APEX_CORE_TRAITS_HPP */

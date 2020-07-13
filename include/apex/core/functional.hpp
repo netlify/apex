@@ -1,10 +1,13 @@
 #ifndef APEX_CORE_FUNCTIONAL_HPP
 #define APEX_CORE_FUNCTIONAL_HPP
 
+#include <apex/core/prelude.hpp>
 #include <apex/core/traits.hpp>
 
+// IWYU pragma: begin_exports
 #include <functional>
 #include <tuple>
+// IWYU pragma: end_exports
 
 namespace apex::impl {
 

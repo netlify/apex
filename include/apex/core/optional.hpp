@@ -501,6 +501,7 @@ private:
 template <class T> optional (std::reference_wrapper<T>) -> optional<T&>;
 template <class T> optional (T) -> optional<T>;
 
+// TODO: move these declarations below operator <=> once it is available.
 extern template struct optional<unsigned long long>;
 extern template struct optional<unsigned long>;
 extern template struct optional<unsigned int>;

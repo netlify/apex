@@ -1,4 +1,5 @@
 #include <apex/core/functional.hpp>
+#include <type_traits>
 
 TEST_CASE("bind_front") {
   auto function = [] (auto&& x, auto&& y) {

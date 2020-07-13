@@ -5,7 +5,7 @@
   #include <source_location>
 #endif /* __has_include(<source_location>) */
 
-#include <apex/core/macros.hpp>
+#include <apex/core/prelude.hpp>
 
 namespace apex {
 

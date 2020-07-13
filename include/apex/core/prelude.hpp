@@ -47,6 +47,7 @@
   #include <version>
 #endif /* __has_include(<version>) */
 
+// IWYU pragma: begin_exports
 #if not APEX_CHECK_API(concepts, 202002)
   #include <type_traits>
   #include <new>
@@ -58,11 +59,11 @@
 
 #include <cstddef>
 #include <cstdint>
+// IWYU pragma: end_exports
 
 #if __has_include(<concepts>)
   #include <concepts>
 #endif /* __has_include(<concepts>) */
-
 
 /* This namespace fragment is used to declare common types and type aliases */
 namespace apex {

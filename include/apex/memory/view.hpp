@@ -1,15 +1,13 @@
 #ifndef APEX_MEMORY_VIEW_HPP
 #define APEX_MEMORY_VIEW_HPP
 
-#include <apex/core/concepts.hpp>
-#include <apex/core/macros.hpp>
 #include <apex/core/prelude.hpp>
+#include <apex/core/utility.hpp>
 
 #if __has_include(<compare>)
   #include <compare>
 #endif /* __has_include(<compare>) */
 
-#include <utility>
 
 namespace apex {
 inline namespace v1 {

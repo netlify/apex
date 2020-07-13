@@ -3,8 +3,10 @@
 
 #include <apex/core/concepts.hpp>
 
+// IWYU pragma: begin_exports
 #include <utility>
 #include <cstring>
+// IWYU pragma: end_exports
 
 // gotta love writing shims for features we don't have :(
 #if not APEX_CHECK_API(integer_comparison_functions, 202002)

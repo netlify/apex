@@ -1,12 +1,13 @@
 #ifndef APEX_CORE_ARRAY_HPP
 #define APEX_CORE_ARRAY_HPP
 
-#include <apex/core/macros.hpp>
+// IWYU pragma: begin_exports
 #include <array>
 
 #if not APEX_CHECK_API(to_array, 201907)
   #include <functional>
 #endif /* not APEX_CHECK_API(to_array, 201907) */
+// IWYU pragma: end_exports
 
 namespace apex {
 
