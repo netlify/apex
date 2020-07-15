@@ -1,0 +1,59 @@
+name: Build and Test
+on: push
+jobs:
+  build:
+    name: Build Apex
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        build-type: [Debug, Release]
+        sanitizer: [ASAN, UBSAN, SAFE_STACK, TSAN]
+        include:
+          - build-type: Debug
+            collect-coverage: true
+    env:
+      CMAKE_GENERATOR: Ninja
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      # TODO: Create a netlify toolchain package that we can download
+      #       This will be needed for the ability to use Memory Sanitizer,
+      #       as well.
+      # TODO: Get clang-tidy-10 to setup an alternative correctly for this
+      #       action
+      #- name: Install Dependencies
+      #  run: |
+      #    sudo apt update
+      #    sudo apt install -y cmake ninja-build
+      #    sudo apt install -y \
+      #      clang-format-10   \
+      #      clang-tools-10    \
+      #      clang-tidy-10     \
+      #      libc++-10-dev     \
+      #      clang-10          \
+      #      llvm-10           \
+      #      lld-10
+      # NOTE: When adding new options, make sure they line up with the original line
+      #       This is a peculiarity of YAML when using `<key>`: >, but it means we
+      #       don't need to remember to put a \
+      # NOTE: It would be nice if we could just *use* `ctest --build-and-test`,
+      #       however, behavior appears to differ based on whether we run
+      #       CMake first or not, and that kind of defeats the purpose 😞
+      #- name: Configure Project
+      #  run: >
+      #    cmake -B${{github.workspace}}/build -S${{github.workspace}}
+      #    -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+      #    -DAPEX_WITH_${{matrix.sanitizer}}=YES
+      #- name: Build Project
+      #  run: cmake --build build
+      #- name: Run Unit Tests
+      #  run: cmake --build build --target test
+      #  env:
+      #    CTEST_OUTPUT_ON_FAILURE=1
+      #- name: Upload Code Coverage
+      #  uses: codecov/codecov-action@v1
+      #  if: matrix.collect-coverage
+      #  with:
+      #    fail_ci_if_error: true
+      #    flags: unit tests
