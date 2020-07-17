@@ -53,6 +53,11 @@ concept handle_storage = requires (T object) {
   object.reset();
 };
 
+template <class T>
+concept releasable = requires (T object) {
+  { object.release() } -> same_as<typename pointer_type_of<T>::type>;
+};
+
 } /* namespace apex::mixin::impl */
 
 namespace apex::mixin {
@@ -84,6 +89,10 @@ struct handle {
     this->storage.reset(ptr, std::forward<Args>(args)...);
   }
   void reset () noexcept { this->storage.reset(); }
+
+  pointer release () noexcept requires impl::releasable<storage_type> {
+    return this->storage.release();
+  }
 
   void swap (handle& that) noexcept {
     using std::swap;
