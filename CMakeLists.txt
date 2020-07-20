@@ -9,27 +9,11 @@ project(apex
   VERSION 0.1.0
   LANGUAGES CXX C)
 
-check_cxx_compiler_flag(-mavx2 CAN_USE_MODE_AVX2)
-
-set(--use-mode-avx2 $<$<BOOL:${CAN_USE_MODE_AVX2}>:-mavx2>)
-
-#set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PROJECT_SOURCE_DIR}/apex.iwyu)
-
-#if (CMAKE_CXX_INCLUDE_WHAT_YOU_USE)
-#list(APPEND CMAKE_CXX_INCLUDE_WHAT_YOU_USE
-#  -Xiwyu --mapping_file=${PROJECT_SOURCE_DIR}/apex.iwyu
-#  -Xiwyu --no_fwd_decls
-#  -Xiwyu --cxx17ns)
-#endif()
-
 if (CMAKE_CXX_CLANG_TIDY)
   list(APPEND CMAKE_CXX_CLANG_TIDY --checks=readability-identifier-naming)
 endif()
 
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
-#set_property(SOURCE ${sources} APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/apex.iwyu)
-#set_property(SOURCE "${PROJECT_BINARY_DIR}/tests/catch.cxx"
-#  APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/apex.iwyu)
 
 # TODO: Eventually replace this with a CMake wrapper project
 FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3320100.zip")

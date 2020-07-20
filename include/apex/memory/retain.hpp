@@ -144,7 +144,7 @@ struct retain_ptr {
     return *this;
   }
 
-  retain_ptr& operator = (nullptr_t) noexcept {
+  [[clang::reinitializes]] retain_ptr& operator = (nullptr_t) noexcept {
     this->reset();
     return *this;
   }
@@ -162,7 +162,7 @@ struct retain_ptr {
 
   pointer get () const noexcept { return this->ptr; }
 
-  [[nodiscard]] pointer release () noexcept {
+  [[nodiscard, clang::reinitializes]] pointer release () noexcept {
     return std::exchange(this->ptr, pointer { });
   }
 

@@ -149,7 +149,7 @@ struct optional<T> final {
 
   constexpr bool has_value () const noexcept { return static_cast<bool>(*this); }
 
-  void reset () noexcept {
+  [[clang::reinitializes]] void reset () noexcept {
     this->clear();
     this->valid = false;
   }
@@ -384,7 +384,7 @@ struct optional<T&> final {
   constexpr auto operator -> () const noexcept { return std::addressof(**this); }
 
   constexpr bool has_value () const noexcept { return static_cast<bool>(*this); }
-  constexpr void reset () noexcept { this->storage = nullptr; }
+  [[clang::reinitializes]] constexpr void reset () noexcept { this->storage = nullptr; }
 
   constexpr value_type value () const noexcept(false) {
     if (not *this) { throw std::bad_optional_access { }; }

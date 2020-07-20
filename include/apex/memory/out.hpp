@@ -5,6 +5,7 @@
 #include <apex/detect/types.hpp>
 
 // This is an implementation of inout_ptr and out_ptr
+// XXX: It is still a work in progress
 
 namespace apex::memory {
 namespace impl {
