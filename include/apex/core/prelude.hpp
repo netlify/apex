@@ -18,7 +18,7 @@
  *
  * NOTE: This is the ONLY FILE where we *do not* put headers at the very top,
  * but instead put our own macro preprocessor checks.
- * This is typically dangerous, but it's a risk we're going to take.
+ * This is typically dangerous, but dangerous is our middle name compadre 😉
  */
 
 /* This section is used to define *all* the most commonly used macros apex uses */
@@ -333,7 +333,7 @@ concept sentinel_for = semiregular<S>
  */
 namespace apex {
 
-inline constexpr auto const ignore = detail::types::ignore_t { };
+[[clang::no_destroy]] inline constexpr auto const ignore = detail::types::ignore_t { };
 
 } /* namespace apex */
 
@@ -466,9 +466,9 @@ public:
 #if not APEX_CHECK_API(ranges, 201911)
 namespace apex::ranges {
 
-inline constexpr auto const begin = detail::types::begin::function { };
-inline constexpr auto const swap = detail::types::swap::function { };
-inline constexpr auto const end = detail::types::end::function { };
+[[clang::no_destroy]] inline constexpr auto const begin = detail::types::begin::function { };
+[[clang::no_destroy]] inline constexpr auto const swap = detail::types::swap::function { };
+[[clang::no_destroy]] inline constexpr auto const end = detail::types::end::function { };
 
 } /* namespace apex::ranges */
 #else

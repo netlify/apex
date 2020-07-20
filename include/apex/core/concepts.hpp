@@ -195,6 +195,9 @@ template <class T> concept trivially_copyable = ::std::is_trivially_copyable_v<T
 template <class T> concept complexly_copyable = not trivially_copyable<T>;
 template <class T> concept standard_layout = ::std::is_standard_layout_v<T>;
 
+template <class T> concept trivially_destructible = ::std::is_trivially_destructible_v<T>;
+template <class T> concept complexly_destructible = not trivially_destructible<T>;
+
 // TODO: This is not ready yet. We need to also enforce compound operators,
 // addressof, boolean operators, modulo and (at some point) enforce a form
 // of operator <=> if its defined.

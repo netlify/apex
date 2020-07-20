@@ -147,6 +147,9 @@ struct optional<T> final {
   constexpr value_type const&& operator * () const&& noexcept { return std::move(this->storage); }
   constexpr value_type&& operator * () && noexcept { return std::move(this->storage); }
 
+  constexpr value_type const* operator -> () const noexcept { return std::addressof(this->storage); }
+  constexpr value_type* operator -> () noexcept { return std::addressof(this->storage); }
+
   constexpr bool has_value () const noexcept { return static_cast<bool>(*this); }
 
   [[clang::reinitializes]] void reset () noexcept {
