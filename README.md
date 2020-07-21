@@ -10,7 +10,7 @@ Apex is currently available under the Apache 2.0 License.
 
 # Building
 
-Apex currently targets C++17 and Linux. We only test and use it on Ubuntu.
+Apex currently targets C++20 and Linux. We only test and use it on Ubuntu.
 Additionally, we stay up to date with a recent version of CMake. The current
 mininimum version is CMake 3.16. We also only run the build with [ninja][1].
 The CMake file is  setup in such a way that Apex can also be used via
