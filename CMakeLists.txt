@@ -16,7 +16,7 @@ endif()
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 # TODO: Eventually replace this with a CMake wrapper project
-FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3320100.zip")
+FetchContent_Declare(sqlite3 URL "https://sqlite.org/2020/sqlite-amalgamation-3320300.zip")
 if (NOT sqlite3_POPULATED)
   # notice that we do not call `add_subdirectory`, we simply fetch and then
   # use the subdirectory sources directly.

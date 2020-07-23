@@ -20,7 +20,7 @@ struct view_ptr {
   constexpr view_ptr (view_ptr const&) noexcept = default;
   constexpr view_ptr () noexcept = default;
 
-  template <different_from<T> U>
+  template <distinct_from<T> U>
   constexpr view_ptr (view_ptr<U> that) noexcept :
     view_ptr { that.get() }
   { }

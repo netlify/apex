@@ -42,7 +42,7 @@ struct optional<T> final {
   static constexpr bool different_value = requires {
     requires is_constructible_v<value_type, U>;
     requires is_assignable_v<value_type, U>;
-    requires not is_scalar_v<value_type> or different_from<decay_t<U>, value_type>;
+    requires not is_scalar_v<value_type> or distinct_from<decay_t<U>, value_type>;
   };
 
   static constexpr auto is_nothrow_swappable = is_nothrow_swappable_v<value_type>
@@ -67,14 +67,13 @@ struct optional<T> final {
   { }
 
   template <class U=value_type>
-  requires different_from<optional, remove_cvref_t<U>> and is_constructible_v<value_type, U>
+  requires different_from<optional, U> and is_constructible_v<value_type, U>
   constexpr explicit(not is_convertible_v<U, value_type>) optional (U&& value)
     noexcept(is_nothrow_constructible_v<value_type, U>) :
     optional { std::in_place, std::forward<U>(value) }
   { }
 
   constexpr optional (optional const&) noexcept requires trivially_copyable<value_type> = default;
-  constexpr ~optional () noexcept requires trivially_copyable<value_type> = default;
 
   constexpr optional (optional const& that)
     noexcept(is_nothrow_copy_constructible_v<value_type>)
@@ -88,8 +87,12 @@ struct optional<T> final {
     valid(that.valid)
   { if (*this) { apex::construct_at(std::addressof(this->storage), std::move(*that)); } }
 
-  constexpr optional () noexcept = default;
-  ~optional () noexcept requires complexly_copyable<value_type> { this->clear(); }
+  constexpr optional () noexcept :
+    valid(false)
+  { }
+
+  ~optional () noexcept requires trivially_destructible<value_type> = default;
+  ~optional () noexcept { this->clear(); }
 
   optional (optional const&) requires (not copy_constructible<value_type>) = delete;
   optional (optional&&) requires (not move_constructible<value_type>) = delete;
@@ -368,6 +371,7 @@ struct optional<T&> final {
   { }
 
   constexpr optional (optional const&) noexcept = default;
+  constexpr optional (T&&) = delete;
   constexpr optional () noexcept = default;
 
   constexpr optional& operator = (optional const&) noexcept = default;
@@ -467,10 +471,8 @@ struct optional<T&> final {
 
   template <class... Args> value_type& try_emplace (Args&&...) = delete;
   template <class... Args> value_type& emplace (Args&&...) = delete;
-  optional (T&&) = delete;
 
 private:
-
   template <class F>
   static constexpr auto is_nothrow_otherwise = requires {
     requires is_nothrow_invocable_v<F>;

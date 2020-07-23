@@ -22,7 +22,6 @@ using ::std::derived_from;
 using ::std::convertible_to;
 using ::std::common_reference_with;
 using ::std::common_with;
-using ::std::integral;
 using ::std::signed_integral;
 using ::std::unsigned_integral;
 using ::std::floating_point;
@@ -35,7 +34,6 @@ using ::std::default_initializable;
 using ::std::move_constructible;
 using ::std::copy_constructible;
 /* comparison */
-using ::std::boolean;
 using ::std::equality_comparable;
 using ::std::equality_comparable_with;
 using ::std::totally_ordered;
@@ -78,14 +76,14 @@ concept swappable = requires (T& a, T& b) { ranges::swap(a, b); };
 //};
 
 template <class T>
-concept equality_comparable = weak_equality_comparable_with<T, T>;
+concept equality_comparable = weakly_equality_comparable_with<T, T>;
 
 template <class T, class U>
 concept equality_comparable_with = equality_comparable<T> 
   and equality_comparable<U>
   and common_reference_with<cref_t<T>, cref_t<U>>
   and equality_comparable<common_reference_t<cref_t<T>, cref_t<U>>>
-  and weak_equality_comparable_with<T, U>;
+  and weakly_equality_comparable_with<T, U>;
 
 template <class T>
 concept totally_ordered = equality_comparable<T>
