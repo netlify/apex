@@ -65,15 +65,33 @@ concept common_reference_with =
   convertible_to<T, common_reference_t<T, U>> and
   convertible_to<U, common_reference_t<U, T>>;
 
+template <class T, class U>
+concept common_with = same_as<::std::common_type_t<T, U>, ::std::common_type_t<U, T>>
+  and requires { 
+    static_cast<::std::common_type_t<T, U>>(::std::declval<T>());
+    static_cast<::std::common_type_t<T, U>>(::std::declval<U>());
+  }
+  and common_reference_with<
+    ::std::add_lvalue_reference_t<T const>,
+    ::std::add_lvalue_reference_t<U const>
+  >
+  and common_reference_with<
+    ::std::add_lvalue_reference_t<::std::common_type_t<T, U>>,
+    common_reference_t<
+      ::std::add_lvalue_reference_t<T const>,
+      ::std::add_lvalue_reference_t<U const>
+    >
+  >;
+
 template <class T> concept unsigned_integral = integral<T> and not signed_integral<T>;
 template <class T> concept floating_point = std::is_floating_point_v<T>;
 
 template <class T>
 concept swappable = requires (T& a, T& b) { ranges::swap(a, b); };
-//template <class T, class U>
-//concept swappable_with = common_reference_with<T, U> and requires (T&& t, U&& u) {
-//  std::swap(std::forward<T>(t), std::forward<T>(t));
-//};
+template <class T, class U>
+concept swappable_with = common_reference_with<T, U> and requires (T&& t, U&& u) {
+  std::swap(std::forward<T>(t), std::forward<T>(t));
+};
 
 template <class T>
 concept equality_comparable = weakly_equality_comparable_with<T, T>;
