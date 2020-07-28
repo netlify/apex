@@ -1,8 +1,6 @@
 #ifndef APEX_CORE_ITERATOR_HPP
 #define APEX_CORE_ITERATOR_HPP
 
-
-
 #include <apex/detect/types.hpp>
 #include <apex/check/alias.hpp>
 

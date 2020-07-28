@@ -16,40 +16,7 @@
 namespace apex {
 
 #if APEX_CHECK_API(concepts, 202002)
-/* core language */
-using ::std::same_as;
-using ::std::derived_from;
-using ::std::convertible_to;
-using ::std::common_reference_with;
-using ::std::common_with;
-using ::std::signed_integral;
-using ::std::unsigned_integral;
-using ::std::floating_point;
-using ::std::assignable_from;
-using ::std::swappable;
-using ::std::swappable_with;
-using ::std::destructible;
-using ::std::constructible_from;
-using ::std::default_initializable;
-using ::std::move_constructible;
-using ::std::copy_constructible;
-/* comparison */
-using ::std::equality_comparable;
-using ::std::equality_comparable_with;
-using ::std::totally_ordered;
-using ::std::totally_ordered_with;
-/* object */
-using ::std::movable;
-using ::std::copyable;
-using ::std::semiregular;
-using ::std::regular;
-/* callable */
-using ::std::invocable;
-using ::std::regular_invocable;
-using ::std::predicate;
-using ::std::relation;
-using ::std::equivalence_relation;
-using ::std::strick_weak_order;
+  APEX_WARN("Concepts are now available. Please refactor.");
 #else
 
 /* core language */
@@ -99,35 +66,40 @@ concept equality_comparable = weakly_equality_comparable_with<T, T>;
 template <class T, class U>
 concept equality_comparable_with = equality_comparable<T> 
   and equality_comparable<U>
-  and common_reference_with<cref_t<T>, cref_t<U>>
-  and equality_comparable<common_reference_t<cref_t<T>, cref_t<U>>>
-  and weakly_equality_comparable_with<T, U>;
+  and common_reference_with<
+    ::std::remove_reference_t<T> const&,
+    ::std::remove_reference_t<U> const&
+  > and equality_comparable<
+    common_reference_t<
+      ::std::remove_reference_t<T> const&,
+      ::std::remove_reference_t<U> const&
+    >
+  > and weakly_equality_comparable_with<T, U>;
 
 template <class T>
 concept totally_ordered = equality_comparable<T>
-  and requires (cref_t<T> a, cref_t<T> b) {
-    { a < b } -> boolean;
-    { a > b } -> boolean;
-    { a <= b } -> boolean;
-    { a >= b } -> boolean;
+  and requires (::std::remove_reference_t<T> const& a, ::std::remove_reference_t<T> const& b) {
+    { a < b } -> boolean_testable;
+    { a > b } -> boolean_testable;
+    { a <= b } -> boolean_testable;
+    { a >= b } -> boolean_testable;
   };
 
 template <class T, class U>
 concept totally_ordered_with = totally_ordered<T>
   and totally_ordered<U>
   and equality_comparable_with<T, U>
-  and totally_ordered<common_reference_t<cref_t<T>, cref_t<U>>>
-  and requires (cref_t<T> t, cref_t<U> u) {
-    { t >= u } -> boolean;
-    { t <= u } -> boolean;
-    { u >= t } -> boolean;
-    { u <= t } -> boolean;
-    { t < u } -> boolean;
-    { t > u } -> boolean;
-    { u < t } -> boolean;
-    { u > t } -> boolean;
+  and totally_ordered<common_reference_t<::std::remove_reference_t<T> const&, ::std::remove_reference_t<U> const&>>
+  and requires (::std::remove_reference_t<T> const& t, ::std::remove_reference_t<U> const& u) {
+    { t >= u } -> boolean_testable;
+    { t <= u } -> boolean_testable;
+    { u >= t } -> boolean_testable;
+    { u <= t } -> boolean_testable;
+    { t < u } -> boolean_testable;
+    { t > u } -> boolean_testable;
+    { u < t } -> boolean_testable;
+    { u > t } -> boolean_testable;
   };
-
 
 template <class T>
 concept regular = semiregular<T> and equality_comparable<T>;

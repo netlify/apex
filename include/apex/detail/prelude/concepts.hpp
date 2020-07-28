@@ -1,6 +1,7 @@
 #ifndef APEX_DETAIL_PRELUDE_CONCEPTS_HPP
 #define APEX_DETAIL_PRELUDE_CONCEPTS_HPP
 
+#include <apex/detail/prelude/convertible-to.hpp>
 #include <apex/detail/prelude/traits.hpp>
 
 #if __has_include(<concepts>)
@@ -19,6 +20,8 @@ template <class T, class U> concept similar_to = ::std::is_same_v<
 >;
 template <class T, class U> concept same_as = ::std::is_same_v<T, U>;
 
+template <class B> concept boolean_testable = convertible_to<B, bool>;
+
 } /* namespace apex::detail::concepts */
 #endif /* not APEX_CHECK_API(concepts, 202002) */
 
@@ -36,15 +39,8 @@ using ::std::movable;
 using ::std::signed_integral;
 using ::std::integral;
 
-using ::std::convertible_to;
 using ::std::same_as;
 #else
-
-template <class From, class To>
-concept convertible_to = ::std::is_convertible_v<From, To>
-  and requires (::std::add_rvalue_reference_t<From> (&f)()) {
-    static_cast<To>(f());
-  };
 
 template <class T, class U>
 concept same_as = detail::concepts::same_as<T, U>
@@ -59,7 +55,6 @@ template <class T, class... Args>
 concept constructible_from = destructible<T>
   and ::std::is_constructible_v<T, Args...>;
 
-// TODO: implement common_reference and friends
 template <class T, class U>
 concept assignable_from = ::std::is_lvalue_reference_v<T>
   and requires (T lhs, U rhs) {
@@ -92,11 +87,19 @@ concept copyable = copy_constructible<T>
 template <class T>
 concept semiregular = copyable<T> and default_initializable<T>;
 
+// This is also known as boolean-testable according to the standard.
+// However, it is useful, so we provide this as a better name.
+template <class B>
+concept boolean_testable = detail::concepts::boolean_testable<B>
+  and requires (B&& b) {
+    { not static_cast<B&&>(b) } -> detail::concepts::boolean_testable;
+  };
+
 /* FIXME: This has been replaced with a boolean-testable exposition only
- * concept that is MUCH MORE involved. As a result, we may have to break up the
+ * concept that is more correct. As a result, we may have to break up the
  * concepts header a bit more to make sure the dependencies are properly
- * handled.  See [concept.booleantestable] for more information on the (now
- * very complex) new definition
+ * handled.  See [concept.booleantestable] for more information on the
+ * new definition
  */
 template <class B>
 concept boolean = movable<remove_cvref_t<B>>
@@ -121,10 +124,10 @@ concept boolean = movable<remove_cvref_t<B>>
 /* weakly-equality-comparable-with */
 template <class T, class U>
 concept weakly_equality_comparable_with = requires (remove_cvref_t<T> const& x, remove_cvref_t<U> const& y) {
-  { x == y } -> boolean;
-  { x != y } -> boolean;
-  { y == x } -> boolean;
-  { y != x } -> boolean;
+  { x == y } -> boolean_testable;
+  { x != y } -> boolean_testable;
+  { y == x } -> boolean_testable;
+  { y != x } -> boolean_testable;
 };
 
 

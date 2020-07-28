@@ -26,6 +26,8 @@
 #include <apex/detail/prelude/concepts.hpp>
 #include <apex/detail/prelude/swap.hpp>
 
+#include <apex/detail/prelude/convertible-to.hpp>
+
 // IWYU pragma: begin_exports
 #if not APEX_CHECK_API(concepts, 202002)
   #include <type_traits>

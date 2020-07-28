@@ -6,17 +6,17 @@
 #include <memory>
 #include <atomic>
 
+namespace apex::detail {
+
+template <class T> using reset_action = typename T::reset_action;
+template <class T, class U>
+concept use_count = requires (T ptr) {
+  { U::use_count(ptr) -> signed_integral; }
+};
+
+} /* apex::detail */
+
 // This is an implementation of P0468
-namespace apex::impl {
-
-template <class T, class P>
-using has_use_count = decltype(T::use_count(std::declval<P>()));
-
-template <class T>
-using has_reset_action = typename T::reset_action;
-
-} /* namespace apex::impl */
-
 namespace apex {
 
 struct retain_t { constexpr retain_t () noexcept = default; };
@@ -46,41 +46,35 @@ private:
 template <class T>
 struct retain_traits final {
 
-  template <class U>
+  template <derived_from<T> U>
   static void increment (atomic_reference_count<U>* ptr) {
-    static_assert(std::is_base_of_v<U, T>);
     ptr->count.fetch_add(1, std::memory_order_relaxed);
   }
 
-  template <class U>
+  template <derived_from<T> U>
   static void increment (reference_count<U>* ptr) noexcept {
-    static_assert(std::is_base_of_v<U, T>);
     ++ptr->count;
   }
 
-  template <class U>
+  template <derived_from<T> U>
   static void decrement (atomic_reference_count<U>* ptr) noexcept {
-    static_assert(std::is_base_of_v<U, T>);
     ptr->count.fetch_sub(1, std::memory_order_acq_rel);
     if (not use_count(ptr)) { delete static_cast<T*>(ptr); }
   }
 
-  template <class U>
+  template <derived_from<T> U>
   static void decrement (reference_count<U>* ptr) noexcept {
-    static_assert(std::is_base_of_v<U, T>);
     --ptr->count;
     if (not use_count(ptr)) { delete static_cast<T*>(ptr); }
   }
 
-  template <class U>
+  template <derived_from<T> U>
   static long use_count (atomic_reference_count<U>* ptr) noexcept {
-    static_assert(std::is_base_of_v<U, T>);
     return ptr->count.load(std::memory_order_relaxed);
   }
 
-  template <class U>
+  template <derived_from<T> U>
   static long use_count (reference_count<U>* ptr) noexcept {
-    static_assert(std::is_base_of_v<U, T>);
     return ptr->count;
   }
 };
@@ -96,11 +90,7 @@ struct retain_ptr {
     traits_type
   >;
 
-  using reset_action = detected_or_t<
-    adopt_t,
-    impl::has_reset_action,
-    traits_type
-  >;
+  using reset_action = detected_or_t<adopt_t, detail::reset_action, traits_type>;
 
   static_assert(std::disjunction_v<
     std::is_same<reset_action, retain_t>,
@@ -177,6 +167,11 @@ struct retain_ptr {
   void reset (pointer ptr = pointer { }) noexcept {
     *this = retain_ptr(ptr, reset_action { });
   }
+
+  auto use_count () const noexcept requires use_count<pointer, traits_type> {
+    return traits_type::use_count(this->get());
+  }
+
 private:
   pointer ptr;
 };

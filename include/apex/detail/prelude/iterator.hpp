@@ -89,10 +89,9 @@ concept input_or_output_iterator = weakly_incrementable<I>
   };
 
 template <class S, class I>
-concept sentinel_for = /*semiregular<S>
-  and*/ input_or_output_iterator<I>
-  /*and weak_equality_comparable_with<S, I>*/;
-
+concept sentinel_for = semiregular<S>
+  and input_or_output_iterator<I>
+  and weakly_equality_comparable_with<S, I>;
 
 #endif /* APEX_CHECK_API(ranges, 201911) */
 
