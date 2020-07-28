@@ -9,9 +9,9 @@ template <class T> void next (T&) = delete;
 
 struct function final {
   template <class T>
-  constexpr void operator () (T&& x) const
-  noexcept(noexcept(function::invoke(static_cast<T&&>(x), prefer<3>))) {
-    return function::invoke(static_cast<T&&>(x), prefer<3>);
+  constexpr void operator () (T&& value) const
+  noexcept(noexcept(function::invoke(static_cast<T&&>(value), prefer<3>))) {
+    return function::invoke(static_cast<T&&>(value), prefer<3>);
   }
 private:
   template <class T> requires (not ::std::is_lvalue_reference_v<T>)
