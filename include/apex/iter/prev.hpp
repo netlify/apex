@@ -3,7 +3,7 @@
 
 #include <apex/iter/advance.hpp>
 
-namespace apex::detail::iter::next {
+namespace apex::detail::iter::prev {
 
 template <class T> void prev (T&) = delete;
 
@@ -34,11 +34,17 @@ private:
   }
 };
 
-} /* namespace apex::detail::iter::next */
+} /* namespace apex::detail::iter::prev */
 
 namespace apex::iter {
 
-inline constexpr auto const prev = detail::iter::next::function { };
+/** @brief Move an iterable to its predecessor.
+ * The order of operations is to first call a member version of `.prev()`,
+ * followed by an ADL lookup form of `prev`, and lastly attempt to call
+ * @ref apex::iter::advance with `-1`.
+ * @ingroup cpo
+ */
+inline constexpr auto const prev = detail::iter::prev::function { };
 
 } /* namespace apex::iter */
 
