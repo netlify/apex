@@ -11,7 +11,7 @@ namespace apex::detail {
 template <class T> using reset_action = typename T::reset_action;
 template <class T, class U>
 concept use_count = requires (T ptr) {
-  { U::use_count(ptr) -> signed_integral; }
+  { U::use_count(ptr) } -> signed_integral;
 };
 
 } /* apex::detail */
@@ -168,7 +168,7 @@ struct retain_ptr {
     *this = retain_ptr(ptr, reset_action { });
   }
 
-  auto use_count () const noexcept requires use_count<pointer, traits_type> {
+  auto use_count () const noexcept requires detail::use_count<pointer, traits_type> {
     return traits_type::use_count(this->get());
   }
 
