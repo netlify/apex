@@ -1,176 +1,150 @@
 #ifndef APEX_MIXIN_ITERATOR_HPP
 #define APEX_MIXIN_ITERATOR_HPP
 
-
 #include <apex/core/iterator.hpp>
 #include <apex/core/concepts.hpp>
 #include <apex/proxy/arrow.hpp>
 
+#include <apex/iter/concepts.hpp>
+
 // TODO: Write an *even better* version of this
 // See https://vector-of-bool.github.io/2020/06/13/cpp20-iter-facade.html 
 // for more details
+namespace apex::mixin::temp {
 
-//namespace apex::mixin::detail {
-//
-//template <class I>
-//concept distance_to = requires (remove_cvref_t<I> const& i) {
-//  { i.distance_to(i) } -> different_from<void>;
-//};
-//
-//template <class I>
-//concept equal_to = requires(remove_cvref_t<I> const& i) {
-//  { i.equal_to(i) } -> boolean;
-//};
-//
-//template <class I>
-//concept dereference = requires (remove_cvref_t<I>& self) { self.dereference(); };
-//
-//template <class I>
-//concept next = requires (remove_cvref_t<I>& self) {
-//  { self.next() } -> same_as<void>;
-//};
-//
-//template <class I>
-//concept prev = requires (remove_cvref_t<I>& self) {
-//  { self.prev() } -> same_as<void>;
-//};
-//
-//template <class I>
-//concept advance = false;requires (remove_cvref_t<I>& i, remove_cvref_t<D> d) {
-//  { i.advance(d) } -> same_as<void>;
-//};
-//
-//template <class I>
-//concept input_iterator = requires {
-//  requires dereference<I>;
-//  requires equal_to<I>;
-//  requires next<I>;
-//};
-//
-//template <class I>
-//concept forward_iterator = requires {
-//  requires copy_constructible<I>;
-//  requires input_iterator<I>;
-//};
-//
-//template <class I>
-//concept bidirectional_iterator = requires {
-//  requires forward_iterator<I>;
-//  requires prev<I>;
-//};
-//
-//template <class I>
-//concept random_access_iterator = requires {
-//  requires dereference<I>;
-//  requires distance_to<I>;
-//  requires apex::mixin::detail::advance<I>;
-//};
-//
-//template <class> struct category { };
-//
-//template <input_iterator I>
-//struct category<I> :
-//  type_identity<std::input_iterator_tag>
-//{ };
-//
-//template <forward_iterator I>
-//struct category<I> :
-//  type_identity<std::forward_iterator_tag>
-//{ };
-//
-//template <bidirectional_iterator I>
-//struct category<I> :
-//  type_identity<std::bidirectional_iterator_tag>
-//{ };
-//
-//template <random_access_iterator I>
-//struct category<I> :
-//  type_identity<std::random_access_iterator_tag>
-//{ };
-//
-//template <class T> using category_t = typename category<T>::type;
-//
-//} /* namespace apex::mixin::detail */
-//
-//namespace apex::mixin {
-//
-//template <class Derived>
-//struct iterator {
-//  using iterator_type = iterator;
-//  using self_type = Derived;
-//
-//  decltype(auto) operator * () const noexcept { return this->self().dereference(); }
-//
-//  auto operator -> () const
-//  noexcept(noexcept(std::addressof(**this)))
-//  requires is_lvalue_reference_v<decltype(**declval<iterator_type const&>())> {
-//    return std::addressof(**this);
-//  }
-//
-////  auto operator -> () const&
-////  noexcept(is_nothrow_copy_constructible_v<self_type>)
-////  requires detail::reference_to_value<I> {
-////    return proxy::arrow(**this);
-////  }
-////
-////  auto operator -> () &&
-////  noexcept(is_nothrow_move_constructible_v<self_type>)
-////  requires detail::reference_to_value<I> {
-////    return proxy::arrow(**this);
-////  }
-//
-//  self_type& operator ++ ()
-//  noexcept(noexcept(this->self().next()))
-//  requires detail::next<self_type> {
-//    this->self().next();
-//    return this->self();
-//  }
-//
-//  self_type& operator -- ()
-//  noexcept(noexcept(this->self().prev()))
-//  requires detail::prev<self_type> {
-//    this->self().prev();
-//    return this->self();
-//  }
-//
-//  self_type operator ++ (int)
-//  noexcept(is_nothrow_copy_constructible_v<self_type>)
-//  requires copy_constructible<self_type> {
-//    auto that = this->self();
-//    ++*this;
-//    return that;
-//  }
-//
-//  self_type operator -- (int)
-//  noexcept(is_nothrow_copy_constructible_v<self_type>)
-//  requires copy_constructible<self_type> {
-//    auto that = this->self();
-//    --*this;
-//    return that;
-//  }
-//
-//  friend bool operator == (self_type const& lhs, self_type const& rhs)
-//  noexcept(noexcept(lhs.equal_to(rhs)))
-//  requires apex::mixin::detail::equal_to<self_type>
-//  { return lhs.equal_to(rhs); }
-//
-//private:
-//  decltype(auto) self () const noexcept { return *static_cast<self_type const*>(*this); }
-//  decltype(auto) self () noexcept { return *static_cast<self_type*>(*this); }
-//};
-//
-//} /* namespace apex::mixin */
-//
-//template <class Iter> requires apex::derived_from<Iter, apex::mixin::iterator<Iter>>
-//struct std::iterator_traits<Iter> {
-//  using difference_type = apex::mixin::detail::difference_type<Iter>;
-//  using value_type = apex::mixin::detail::value_type<Iter>;
-//  using reference = decltype(std::declval<Iter>());
-//  using pointer = decltype(std::declval<Iter>().operator ->());
-//
-//  using iterator_category = apex::mixin::detail::category_t<Iter>;
-//  using iterator_concept = iterator_category;
-//};
+// FIXME: We need to make sure the T here is at a minimum an indirectly_readable
+// or at the very least in our case, indirectly_readable_from (which is just our version of it)
+template <class T>
+struct iterator {
+  using derived_type = T;
+  using sentinel_type = iter::sentinel_of_t<derived_type>;
+  // TODO: detect the difference type by calling distance_to, or just
+  // don't create a difference_type
+  using difference_type = ptrdiff_t;
+  //using difference_type = iter_difference_t<derived_type>;
+
+  decltype(auto) operator -> () const noexcept(noexcept(**this))
+  requires iter::indirectly_addressable<derived_type> {
+    return **this;
+  }
+
+  decltype(auto) operator -> () const noexcept(noexcept(**this))
+  requires iter::indirectly_readable_from<derived_type> {
+    return proxy::arrow(std::move(**this));
+  }
+
+  decltype(auto) operator * () const
+  noexcept(noexcept(::apex::iter::read_from(this->self())))
+  requires iter::indirectly_readable_from<derived_type> {
+    return ::apex::iter::read_from(this->self());
+  }
+
+  decltype(auto) operator [] (difference_type n) const
+  noexcept(noexcept(::apex::iter::advance(this->self(), n)))
+  requires iter::weakly_steppable<derived_type, difference_type> {
+    return *(this->self() + n);
+  }
+
+  decltype(auto) operator += (difference_type n)
+  noexcept(noexcept(::apex::iter::advance(this->self(), n))) 
+  requires iter::weakly_steppable<derived_type, difference_type> {
+    ::apex::iter::advance(this->self(), n);
+    return this->self();
+  }
+
+  decltype(auto) operator -= (difference_type n)
+  noexcept(noexcept(::apex::iter::advance(this->self(), n)))
+  requires iter::weakly_steppable<derived_type, difference_type> {
+    ::apex::iter::advance(this->self(), -n);
+    return this->self();
+  }
+
+  decltype(auto) operator + (difference_type n) const
+  noexcept(::std::is_nothrow_copy_constructible_v<derived_type> and noexcept(this->self() += n))
+  requires iter::weakly_steppable<derived_type, difference_type> {
+    return derived_type { this->self() } += n;
+  }
+
+  decltype(auto) operator - (difference_type n) const
+  noexcept(::std::is_nothrow_copy_constructible_v<derived_type> and noexcept(this->self() -= n))
+  requires iter::weakly_steppable<derived_type, difference_type> {
+    return derived_type { this->self() } -= n;
+  }
+
+  decltype(auto) operator ++ (int)
+  noexcept(::std::is_nothrow_copy_constructible_v<derived_type> and noexcept(++*this))
+  requires iter::weakly_decrementable<derived_type> and copy_constructible<derived_type> {
+    auto that = this->self();
+    ++*this;
+    return that;
+  }
+
+  decltype(auto) operator ++ ()
+  noexcept(noexcept(::apex::iter::next(this->self())))
+  requires iter::weakly_incrementable<derived_type> {
+    ::apex::iter::next(this->self());
+    return this->self();
+  }
+
+  decltype(auto) operator -- (int)
+  noexcept(::std::is_nothrow_copy_constructible_v<derived_type> and noexcept(--*this))
+  requires iter::weakly_decrementable<derived_type> and copy_constructible<derived_type> {
+    auto that = this->self();
+    --*this;
+    return that;
+  }
+
+  decltype(auto) operator -- ()
+  noexcept(noexcept(::apex::iter::prev(this->self())))
+  requires iter::weakly_decrementable<derived_type> {
+    ::apex::iter::prev(this->self());
+    return this->self();
+  }
+
+  bool operator == (sentinel_type const& that) const
+  noexcept(noexcept(::apex::iter::equal_to(this->self(), that)))
+  requires iter::equality_comparable<derived_type, sentinel_type> {
+    return ::apex::iter::equal_to(this->self(), that);
+  }
+
+  bool operator != (sentinel_type const& that) const noexcept(noexcept(not (*this == that)))
+  requires iter::equality_comparable<derived_type, sentinel_type> {
+    return not (*this == that);
+  }
+
+  bool operator >= (sentinel_type const& that) const noexcept(noexcept(not (*this < that)))
+  requires iter::distance_measurable<derived_type, sentinel_type> {
+    return not (*this < that);
+  }
+
+  bool operator <= (sentinel_type const& that) const noexcept(noexcept(not (*this > that)))
+  requires iter::distance_measurable<derived_type, sentinel_type> {
+    return not (*this > that);
+  }
+
+  bool operator > (sentinel_type const& that) const noexcept(noexcept(that < *this))
+  requires iter::distance_measurable<derived_type, sentinel_type> {
+    return that < *this;
+  }
+
+  bool operator < (sentinel_type const& that) const
+  noexcept(noexcept(::apex::iter::distance_to(*this, that)))
+  requires iter::distance_measurable<derived_type, sentinel_type> {
+    return ::apex::iter::distance_to(*this, that) > 0;
+  }
+
+private:
+  decltype(auto) self () const noexcept { return *static_cast<T const*>(this); }
+  decltype(auto) self () noexcept { return *static_cast<T*>(this); }
+};
+
+
+template <class T>
+decltype(auto) operator + (iter_difference_t<T> n, iterator<T> const& it) noexcept(noexcept(it + n)) {
+  return it + n;
+}
+
+} /* namespace apex::mixin */
 
 // XXX: This mixin is kind of a mess because we don't have all the ranges::
 // concepts available to us. Currently we don't guarantee that
@@ -307,130 +281,16 @@ struct iterator {
     noexcept(traits_type::addressof(this->self()))
   ) { return traits_type::addressof(this->self()); }
 
-  // random-access-iterator
-  decltype(auto) operator [] (difference_type n) const noexcept(
-    noexcept(*this->self() + n)
-  ) { return *(this->self() + n); }
-
-  // random-access-iterator
-  decltype(auto) operator += (difference_type n)
-    noexcept(noexcept(traits_type::advance(this->self(), n)))
-  { traits_type::advance(this->self(), -n); return this->self(); }
-
-  // random-access-iterator
-  decltype(auto) operator -= (difference_type n)
-    noexcept(noexcept(traits_type::advance(this->self(), -n)))
-    requires random_access_iterator<derived_type>
-  { traits_type::advance(this->self(), -n); return this->self(); }
-
-  // random-access-iterator
   decltype(auto) operator - (sentinel_type const& that) const
     noexcept(noexcept(traits_type::distance_to(this->self(), that)))
     requires random_access_iterator<derived_type>
   { return traits_type::distance_to(this->self(), that); }
-
-  // random-access iterator
-  // TODO: correct noexcept to also check for -= noexcept
-  derived_type operator - (difference_type n) const noexcept(
-    std::is_nothrow_copy_constructible_v<derived_type>
-  ) { return derived_type { this->self() } -= n; }
-
-  // random-access-iterator
-  // TODO: correct noexcept to also check for += noexcept
-  derived_type operator + (difference_type n) const noexcept(
-    std::is_nothrow_copy_constructible_v<derived_type>
-  ) { return derived_type { this->self() } += n; }
-
-  // bidirectional-iterator
-  derived_type operator -- (int) noexcept(std::is_nothrow_copy_constructible_v<derived_type>) {
-    derived_type that { this->self() };
-    --*this;
-    return that;
-  }
-
-  // bidirectional-iterator
-  derived_type& operator -- () noexcept(noexcept(traits_type::decrement(this->self()))) {
-    traits_type::decrement(this->self());
-    return this->self();
-  }
-
-  // forward-iterator
-  derived_type operator ++ (int) noexcept(std::is_nothrow_copy_constructible_v<derived_type>) {
-    derived_type that { this->self() };
-    ++*this;
-    return that;
-  }
-
-  // input-iterator
-  derived_type& operator ++ () noexcept(
-    noexcept(traits_type::increment(this->self()))
-  ) {
-    traits_type::increment(this->self());
-    return this->self();
-  }
-
-  // input-iterator
-  bool operator == (iterator const& that) const noexcept(
-    noexcept(traits_type::equals(this->self(), that))
-  ) { return traits_type::equals(this->self(), that); }
-
-  // input-iterator
-  bool operator != (iterator const& that) const noexcept(
-    noexcept(not (this->self() == that))
-  ) { return not (this->self() == that); }
-
-  // TODO: update these to be noexcept-safe and compare against sentinel_type
-  // random-access-iterator
-  bool operator >= (iterator const& that) const noexcept {
-    return not (*this < that);
-  }
-  // random-access-iterator
-  bool operator <= (iterator const& that) const noexcept {
-    return not (*this > that);
-  }
-  // random-access-iterator
-  bool operator > (iterator const& that) const noexcept {
-    return that < *this;
-  }
-  // random-access-iterator
-  bool operator < (iterator const& that) const noexcept {
-    return std::distance(*this, that) > 0;
-  }
-
-private:
-  decltype(auto) self () const noexcept { return *static_cast<T const*>(this); }
-  decltype(auto) self () noexcept { return *static_cast<T*>(this); }
 };
 
 template <class T, class D>
 decltype(auto) operator + (D n, iterator<T> const& it) noexcept(noexcept(it + n)) {
   return it + n;
 }
-
-template <
-  class T,
-  class D,
-  class=std::enable_if_t<
-    std::is_same_v<
-      typename std::iterator_traits<iterator<T>>::iterator_tag,
-      std::random_access_iterator_tag
-    >
-  >
-> decltype(auto) operator - (D n, iterator<T> const& it) noexcept(noexcept(it - n)) {
-  return it - n;
-}
-
-template <class> struct output_iterator { };
-
-//template <class T, class D>
-//decltype(auto) operator + (D n, random_access_iterator<T> const& it) noexcept(noexcept(it + n)) {
-//  return it + n;
-//}
-//
-//template <class T, class D>
-//decltype(auto) operator - (D n, random_access_iterator<T> const& it) noexcept(noexcept(it - n)) {
-//  return it - n;
-//}
 
 } /* namespace apex::mixin */
 

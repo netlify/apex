@@ -12,7 +12,7 @@ struct function final {
   template <class T> requires requires { typename iter_difference_t<T>; }
   constexpr void operator () (T&& value, iter_difference_t<T> offset) const
   noexcept(noexcept(function::invoke(static_cast<T&&>(value), offset, prefer<2>))) {
-    function::invoke(static_cast<T&&>(x), offset, prefer<2>);
+    function::invoke(static_cast<T&&>(value), offset, prefer<2>);
   }
 private:
   template <class T> requires (not ::std::is_lvalue_reference_v<T>)
@@ -21,7 +21,7 @@ private:
   template <class T>
   requires requires (T&& x, iter_difference_t<T> d) { static_cast<T&&>(x).advance(d); }
   static constexpr void invoke (T&& value, iter_difference_t<T> offset, preference<1>)
-  noexcept(noexcept(static_cast<T&&>(value).advance(d))) {
+  noexcept(noexcept(static_cast<T&&>(value).advance(offset))) {
     static_cast<T&&>(value).advance(offset);
   }
 
