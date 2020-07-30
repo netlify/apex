@@ -22,11 +22,12 @@ struct row final /*: private mixin::iterator<row>*/ {
 
   void swap (row&) noexcept;
 
-  column dereference () const noexcept;
-  bool equals (row const&) const noexcept;
+  column begin () const;
+  column end () const;
 
+  ptrdiff_t distance_to (row const&) const noexcept;
+  column read_from () const noexcept;
   void advance (ptrdiff_t) noexcept;
-  void increment () noexcept;
 
 private:
   handle_type handle;

@@ -5,11 +5,6 @@ namespace apex::sqlite {
 
 struct value;
 
-// TODO: consider storing 127 sqlite::value objects in a thread-local static
-// array for access. Alternatively, return sqlite::value's by value, rather
-// than by reference. There is a reason for this, and it's briefly mentioned in
-// the sqlite3 documentation.
-
 struct context final {
   using handle_type = view_ptr<sqlite3_context>;
   using pointer = handle_type::pointer;
@@ -31,6 +26,7 @@ struct context final {
   void operator = (i64) const noexcept;
   void operator = (i32) const noexcept;
 
+  // TODO: Use tie apex::proxy::item here instead.
   value const& operator [] (ptrdiff_t) const noexcept;
 
   pointer get () const noexcept;
