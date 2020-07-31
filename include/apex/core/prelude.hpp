@@ -1,7 +1,7 @@
 #ifndef APEX_CORE_PRELUDE_HPP
 #define APEX_CORE_PRELUDE_HPP
 
-/**
+/*
  * The prelude can most easily be described as a set of declarations and
  * definitions that are required to be defined *everywhere* for the most basic
  * of operations.
