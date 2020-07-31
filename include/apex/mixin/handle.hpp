@@ -2,7 +2,6 @@
 #define APEX_MIXIN_HANDLE_HPP
 
 #include <apex/core/concepts.hpp>
-#include <apex/detect/operators.hpp>
 #include <apex/check/alias.hpp>
 
 // TODO: consider renaming the type to resource_handle, or just 'resource'

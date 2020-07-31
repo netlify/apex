@@ -173,7 +173,7 @@ template <class T, template <class, size_t> class U>
 inline constexpr auto is_bounded_specialization_of_v = is_bounded_specialization_of<T, U> { };
 
 template <auto V>
-inline constexpr auto constant = std::integral_constant<decltype(V), V> { };
+inline constexpr auto constant = ::std::integral_constant<decltype(V), V> { };
 
 template <class... Ts> inline constexpr auto always_false = false;
 

@@ -20,7 +20,8 @@ struct cond_value_type<T> : remove_cv<T> { };
 
 namespace apex {
 
-template <dereferenceable T>
+template <class T>
+requires requires (T t) { *t; }
 using iter_reference_t = decltype(*std::declval<T&>());
 
 template <class> struct indirectly_readable_traits { };
@@ -44,8 +45,12 @@ struct indirectly_readable_traits<T> :
 { };
 
 template <class T>
-requires apex::check::element_type<T> and apex::check::value_type<T>
-struct indirectly_readable_traits<T> { };
+requires apex::check::element_type<T>
+  and apex::check::value_type<T>
+  and requires { typename ::std::common_type<typename T::element_type, typename T::value_type>::type; }
+struct indirectly_readable_traits<T> :
+  std::common_type<typename T::element_type, typename T::value_type>
+{ };
 
 template <class I>
 concept incrementable = regular<I> and weakly_incrementable<I> and requires (I i) {

@@ -8,8 +8,8 @@
 
 namespace apex::detail::core::dispatch {
 
-template <class, class...>
-void dispatch () = delete;
+template <class T, class... Args>
+void dispatch (T, Args&&...) = delete;
 
 struct function final {
   template <class CPO, class... Args>

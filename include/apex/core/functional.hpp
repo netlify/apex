@@ -35,7 +35,7 @@ struct bind_front final {
       this->function,
       std::tuple_cat(
         this->bound,
-        std::forward_as_tuple(std::forward<Args>(args)...)));
+        std::forward_as_tuple(static_cast<Args&&>(args)...)));
   }
 
   template <class... Args>
@@ -185,7 +185,7 @@ struct function_ref<R(Args...) noexcept> {
   }
 
   R operator () (Args... args) const noexcept {
-    return std::invoke(callback, this->ptr, std::forward<Args>(args)...);
+    return ::std::invoke(callback, this->ptr, static_cast<Args&&>(args)...);
   }
 private:
   callback_type callback { };

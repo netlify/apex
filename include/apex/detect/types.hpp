@@ -11,8 +11,6 @@ template <class T> using size_type = typename T::size_type;
 template <class T> using reference = typename T::reference;
 template <class T> using pointer = typename T::pointer;
 
-template <class T> using complete = decltype(void(sizeof(T)));
-
 } /* namespace apex::detect::types */
 
 #endif /* APEX_DETECT_TYPES_HPP */

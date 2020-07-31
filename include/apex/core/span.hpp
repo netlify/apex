@@ -6,8 +6,6 @@
 #include <apex/core/array.hpp>
 #include <apex/core/prelude.hpp>
 
-#include <apex/detect/iter.hpp>
-
 #include <iterator>
 #include <limits>
 
