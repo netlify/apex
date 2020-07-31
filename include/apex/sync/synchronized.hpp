@@ -15,21 +15,21 @@ namespace apex::concurrency {
 
 // Still needs some work, but this is effectively based off of the proposed
 // synchronized_value
-template <class T, class U=std::mutex>
+template <class T, class U=::std::mutex>
 struct synchronized final {
   using value_type = T;
   using mutex_type = U;
 
   template <Args...>
-  synchronized (Args&&... args) noexcept(NothrowConstructible<T, Args...>) :
-    val { std::forward<Args>(args)... }
+  synchronized (Args&&... args) noexcept(::std::is_nothrow_constructible_v<T, Args...>) :
+    val { static_cast<Args&&>(args)... }
   { }
   ~synchronized () = default;
 
   template <class F, class... Args>
   friend decltype(auto) apply (F&& f, synchronized<Args>&... values) {
-    std::scoped_lock(values.mtx...);
-    return std::invoke(std::forward<F>(f), values.val...);
+    ::std::scoped_lock lock(values.mtx...);
+    return ::std::invoke(static_cast<F&&>(f), values.val...);
   }
 private:
   mutable mutex_type mtx;
