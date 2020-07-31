@@ -38,11 +38,8 @@ template <class T>
 concept handle_storage = requires (T object) {
   //requires equality_comparable_with<T, nullptr_t>;
   //requires totally_ordered<T>;
-  //requires swappable<T>;
+  requires swappable<T>;
   requires movable<T>;
-
-  // TODO: replace with better concepts later
-  requires is_swappable_v<T>;
 
   typename pointer_type_of_t<T>;
 
@@ -62,14 +59,20 @@ concept releasable = requires (T object) {
 
 namespace apex::mixin {
 
-// Intended to be used like:
-/*
+/** @brief Resource handle mixin
+ * This is used to save a *lot* of time and energy when wrapping C APIs, of
+ * which there are a great deal in the world.
+ *
+ * An example of intended usage:
+ * @code{.cpp}
  * template <class T, class D=std::default_delete<T>>
  * using unique_handle = handle<T, std::unique_ptr<T, D>>;
- * struct my_type : protected unique_handle<int> { }
+ * struct my_type : protected unique_handle<int> { };
+ * @endcode
+ *
+ * @note This should ONLY be used to wrapping object lifetimes when other types
+ * do not follow RAII. This applies to both C and C++ APIs
  */
-// this saves a LOT of time and energy when wrapping C APIs, of which there are
-// a great deal of in the world.
 template <class T, impl::handle_storage Storage>
 struct handle {
   using storage_type = Storage;
