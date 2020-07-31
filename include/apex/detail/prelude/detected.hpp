@@ -9,6 +9,12 @@
 
 namespace apex {
 
+template <template <class...> class Fn, class... Args>
+concept detectable_with = requires { typename Fn<Args...>; };
+
+template <template <class...> class Fn, class... Args>
+concept undetectable_with = not detectable_with<Fn, Args...>;
+
 template <class, template <class...> class, class...> struct detected_or;
 template <template <class...> class, class...> struct detected;
 
@@ -16,14 +22,14 @@ template <class Default, template <class...> class Fn, class... Args>
 struct detected_or { using type = Default; };
 
 template <class Default, template <class...> class Fn, class... Args>
-requires requires { typename Fn<Args...>; }
+requires detectable_with<Fn, Args...>
 struct detected_or<Default, Fn, Args...> { using type = Fn<Args...>; };
 
 template <template <class...> class Fn, class... Args>
 struct detected { };
 
 template <template <class...> class Fn, class... Args>
-requires requires { typename Fn<Args...>; }
+requires detectable_with<Fn, Args...>
 struct detected<Fn, Args...> { using type = Fn<Args...>; };
 
 template <class Default, template <class...> class Fn, class... Args>

@@ -2,7 +2,7 @@
 #define APEX_MIXIN_HANDLE_HPP
 
 #include <apex/core/concepts.hpp>
-#include <apex/check/alias.hpp>
+#include <apex/core/meta.hpp>
 
 // TODO: consider renaming the type to resource_handle, or just 'resource'
 // We can also use the name 'resource' for the concept itself. All of this is
@@ -10,25 +10,25 @@
 namespace apex::mixin::impl {
 
 template <class T>
-concept pointer_only = requires {
-  requires not check::element_type<T>;
-  requires check::pointer<T>;
-};
+concept pointer_only = undetectable_with<meta::element_type, T>
+  and detectable_with<meta::pointer, T>;
 
 template <class T>
-concept element_only = requires {
-  requires not check::pointer<T>;
-  requires check::element_type<T>;
-};
+concept element_only = not pointer_only<T>
+  and detectable_with<meta::element_type, T>;
 
+/* This has to be more constrained and thus subsume pointer_only and element_only
+ */
 template <class T>
-concept element_and_pointer = check::element_type<T> and check::pointer<T>;
+concept element_and_pointer = not pointer_only<T> and not element_only<T> 
+  and detectable_with<meta::element_type, T>
+  and detectable_with<meta::pointer, T>;
 
 template <class> struct pointer_type_of;
 
-template <element_and_pointer T> struct pointer_type_of<T> : type_identity<typename T::pointer> { };
-template <element_only T> struct pointer_type_of<T> : add_pointer<typename T::element_type> { };
-template <pointer_only T> struct pointer_type_of<T> : type_identity<typename T::pointer> { };
+template <element_and_pointer T> struct pointer_type_of<T> : type_identity<meta::pointer<T>> { };
+template <element_only T> struct pointer_type_of<T> : add_pointer<meta::element_type<T>> { };
+template <pointer_only T> struct pointer_type_of<T> : type_identity<meta::pointer<T>> { };
 
 template <class T>
 using pointer_type_of_t = typename pointer_type_of<T>::type;

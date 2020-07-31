@@ -139,7 +139,8 @@ template <class T> using cref_t = add_lvalue_reference_t<add_const_t<remove_refe
   template <class T> inline constexpr bool is_bounded_array_v = is_bounded_array<T>::value;
 #endif /* APEX_CHECK_API(bounded_array_traits, 201902) */
 
-// Custom type traits
+// Custom type traits - some of these are also intended to be meta-functions
+// for apex::detected
 template <class> struct class_of;
 template <class S, class T>
 struct class_of<S T::*> : type_identity<T> { };

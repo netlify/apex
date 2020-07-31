@@ -1,11 +1,9 @@
 #ifndef APEX_CORE_ITERATOR_HPP
 #define APEX_CORE_ITERATOR_HPP
 
-#include <apex/detect/types.hpp>
-#include <apex/check/alias.hpp>
 
 #include <apex/core/concepts.hpp>
-#include <apex/core/prelude.hpp>
+#include <apex/core/meta.hpp>
 #include <iterator>
 
 // TODO: most of these declarations need to be put behind a std shim
@@ -34,20 +32,22 @@ struct indirectly_readable_traits<T> : remove_cv<remove_extent_t<T>> { };
 template <class T>
 struct indirectly_readable_traits<T const> : indirectly_readable_traits<T> { };
 
-template <apex::check::value_type T> requires (not apex::check::element_type<T>)
+template <class T>
+requires detectable_with<meta::value_type, T> and undetectable_with<meta::element_type, T>
 struct indirectly_readable_traits<T> :
-  detail::cond_value_type<typename T::value_type>
-{ };
-
-template <apex::check::element_type T> requires (not apex::check::value_type<T>)
-struct indirectly_readable_traits<T> :
-  detail::cond_value_type<typename T::element_type>
+  detail::cond_value_type<meta::value_type<T>>
 { };
 
 template <class T>
-requires apex::check::element_type<T>
-  and apex::check::value_type<T>
-  and requires { typename ::std::common_type<typename T::element_type, typename T::value_type>::type; }
+requires detectable_with<meta::element_type, T> and undetectable_with<meta::value_type, T>
+struct indirectly_readable_traits<T> :
+  detail::cond_value_type<meta::element_type<T>>
+{ };
+
+template <class T>
+requires detectable_with<meta::element_type, T>
+  and detectable_with<meta::value_type, T>
+  and requires { typename ::std::common_type<meta::element_type<T>, meta::value_type<T>>::type; }
 struct indirectly_readable_traits<T> :
   std::common_type<typename T::element_type, typename T::value_type>
 { };
