@@ -28,143 +28,45 @@
 
 #include <apex/detail/prelude/convertible-to.hpp>
 
-// IWYU pragma: begin_exports
-#if not APEX_CHECK_API(concepts, 202002)
-  #include <type_traits>
-  #include <new>
-#endif /* APEX_CHECK_API(concepts, 202002) */
-
-// IWYU pragma: end_exports
-//
-
-/* This namespace fragment is used to declare common functions */
-namespace apex {
-
-/* This is typically an exposition only function, but it's used enough in
- * C++ that it *should* just be part of the standard
- * NOTE: We do not use std::forward because it turns out it's just faster
- * to use a static_cast and then we also don't need to #include <utility>
+/** @def APEX_CHECK_BUILTIN(name)
+ * @brief Checks if `__builtin_<name>` is a valid identifier
+ * In practice this isn't really needed as apex currently only target's one
+ * release of clang.
  */
-template <class T>
-constexpr ::std::decay_t<T> decay_copy (T&& value)
-noexcept(::std::is_nothrow_convertible_v<T, ::std::decay_t<T>>) {
-  return static_cast<T&&>(value);
-}
 
-} /* namespace apex */
-
-/* This namespace fragment is used to declare the minimum set of concepts
- * required to create the *core* concepts used (including std::swappable)
+/** @def APEX_CHECK_API(name, version)
+ * @brief Checks if `__cpp_lib_<name>` is greater than or equal to @p version
+ * Primarily used to see if apex needs to provide its own implementation of
+ * C++ standard library features.
  */
-namespace apex {
 
-// TODO: Remove this, as we won't need it in the future
-template <class T>
-concept dereferenceable = requires (T& t) { *t; };
-
-#if not APEX_CHECK_API(ranges, 201911)
-/* This is not technically correct because we do not use is-signed-integer-like,
- * but instead use signed_integral. That said we don't really *need* that, as
- * we aren't going to need anything beyond what is_signed_integral can provide us
+/** @def APEX_CHECK_CXX(name, version)
+ * @brief Checks if `__cpp_<name>` is greater than or equal to @p version
+ * Primarily used to see if apex has access to C++ language features.
  */
-#endif /* APEX_CHECK_API(ranges, 201911) */
 
-} /* namespace apex */
+/** @def APEX_ERROR(message)
+ * @brief Prints an error with the contents of @p message
+ */
 
-namespace apex::detail::types::begin {
+/** @def APEX_WARN(message)
+ * @brief Prints a warning with the contents of @p message
+ */
 
-template <class T>
-concept member = requires (T&& t) {
-  { static_cast<T&&>(t).begin() } -> input_or_output_iterator;
-};
+/** @def APEX_DIAGNOSTIC_FORBID(diagnostic)
+ * @brief The compiler will now treat @p diagnostic as a fatal error
+ */
 
-template <class T> void begin (T const&) = delete;
-template <class T> void begin (T&) = delete;
+/** @def APEX_DIAGNOSTIC_DENY(diagnostic)
+ * @brief The compiler will now treat @p diagnostic as an error
+ */
 
-class function {
-  // TODO: requires allowing a "borrowed" range
-  template <class T> requires (not ::std::is_lvalue_reference_v<T>)
-  static constexpr void invoke (T&&, preference<3>) = delete;
+/** @def APEX_DIAGNOSTIC_WARN(diagnostic)
+ * @brief The compiler will now treat @p diagnostic as a warning
+ */
 
-  template <class T> requires ::std::is_array_v<remove_cvref_t<T>>
-  static constexpr decltype(auto) invoke (T&& array, preference<2>) noexcept {
-    return static_cast<T&&>(array) + 0;
-  }
-
-  template <member T>
-  static constexpr decltype(auto) invoke (T&& value, preference<1>)
-  noexcept(noexcept(apex::decay_copy(static_cast<T&&>(value).begin()))) {
-    return apex::decay_copy(static_cast<T&&>(value).begin());
-  }
-
-  template <class T>
-  static constexpr decltype(auto) invoke (T&& value, preference<0>)
-  noexcept(noexcept(apex::decay_copy(begin(static_cast<T&&>(value))))) {
-    return apex::decay_copy(begin(static_cast<T&&>(value)));
-  }
-
-public:
-  template <class T>
-  constexpr auto operator () (T&& value) const
-  noexcept(noexcept(function::invoke(static_cast<T&&>(value), prefer<3>))) {
-    return function::invoke(static_cast<T&&>(value), prefer<3>);
-  }
-};
-
-} /* namespace apex::detail::types::begin */
-
-namespace apex::detail::types::end {
-
-template <class T> void end (T const&) = delete;
-template <class T> void end (T&) = delete;
-
-template <class T>
-concept member = requires (T&& value, begin::function begin) {
-  { static_cast<T&&>(value).end() } -> sentinel_for<decltype(begin(static_cast<T>(value)))>;
-};
-
-template <class T>
-concept freeform = requires (T&& value, begin::function begin) {
-  { end(static_cast<T&&>(value)) } -> sentinel_for<decltype(begin(static_cast<T>(value)))>;
-};
-
-class function {
-  template <class T> requires (not ::std::is_lvalue_reference_v<T>)
-  static constexpr void invoke (T&&, preference<3>) = delete;
-
-  template <class T> requires ::std::is_array_v<remove_cvref_t<T>>
-  static constexpr decltype(auto) invoke (T&& array, preference<2>) noexcept {
-    return static_cast<T&&>(array) + ::std::extent_v<remove_cvref_t<T>>;
-  }
-
-  template <member T>
-  static constexpr decltype(auto) invoke (T&& value, preference<1>)
-  noexcept(noexcept(apex::decay_copy(static_cast<T&&>(value)))) {
-    return apex::decay_copy(static_cast<T&&>(value).end());
-  }
-
-  template <freeform T>
-  static constexpr decltype(auto) invoke (T&& value, preference<0>)
-  noexcept(noexcept(apex::decay_copy(end(static_cast<T&&>(value))))) {
-    return apex::decay_copy(end(static_cast<T&&>(value)));
-  }
-public:
-  template <class T>
-  constexpr auto operator () (T&& value) const
-  noexcept(noexcept(function::invoke(static_cast<T&&>(value), prefer<3>))) {
-    return function::invoke(static_cast<T&&>(value), prefer<3>);
-  }
-};
-
-} /* namespace apex::detail::types::end */
-
-#if not APEX_CHECK_API(ranges, 201911)
-namespace apex::ranges {
-
-[[clang::no_destroy]] inline constexpr auto const begin = detail::types::begin::function { };
-[[clang::no_destroy]] inline constexpr auto const end = detail::types::end::function { };
-
-} /* namespace apex::ranges */
-#endif /* not APEX_CHECK_API(ranges, 201911) */
+/** @def APEX_DIAGNOSTIC_ALLOW(diagnostic)
+ * @brief The compiler will now *ignore* @p diagnostic
+ */
 
 #endif /* APEX_CORE_PRELUDE_HPP */
