@@ -117,13 +117,12 @@ constexpr auto bit_cast (detail::bit_castable_from<To> auto const& from) noexcep
 #if APEX_CHECK_BUILTIN(bit_cast)
   return __builtin_bit_cast(To, from);
 #else
-  std::aligned_storage_t<sizeof(To), alignof(To)> storage;
-  return *static_cast<To*>(std::memcpy(&storage, &from, sizeof(To)));
+  APEX_ERROR("A __builtin_bit_cast implementation is currently required");
 #endif
 }
 #endif /* APEX_CHECK_API(bit_cast, 201806) */
 
-// Not part of the standard, but still useful!
+/** @brief a pretty great way to invoke undefined behavior! 🙂 */
 [[noreturn]] void unreachable () noexcept { __builtin_unreachable(); }
 
 } /* namespace apex */
