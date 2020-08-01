@@ -12,6 +12,10 @@
 #include <apex/iter/traits.hpp>
 
 #include <apex/core/concepts.hpp>
+
+// *! @defgroup concepts Concepts * /
+// *! @defgroup cpo Customization Point Objects * /
+
 /* Our concepts are similarly named to the ones found in the standard but 
  * ONLY apply to a specific expression found with our CPOs for implementing
  * iterable mixins. The rules are more 'lax' than the standard counterparts
@@ -20,9 +24,11 @@
  */
 namespace apex::iter {
 
-/** @brief Specifies that @ref apex::iter::read_from can be used on a type.
+/** @interface apex::iter::indirectly_readable_from<I>
+ * @brief Specifies that @ref apex::iter::read_from can be used on a type.
  * This is primarily used to implement the input_iterator capabilities on
  * @ref apex::mixin::iterator.
+ * @ingroup concepts
  * @see apex::iter::read_from
  */
 template <class I>
@@ -30,12 +36,14 @@ concept indirectly_readable_from = requires (I iterable) {
   { ::apex::iter::read_from(iterable) } -> distinct_from<void>;
 };
 
-/** @brief Specifies that @ref apex::iter::write_into can be used on a type.
- * This is primarily used to implement the output_iterator capabilities on
- * the @ref apex::mixin::iterator
+/** @interface apex::iter::indirectly_writable_into<I, T>
+ * @brief Specifies that @ref apex::iter::write_into can be used on a type.
+ * @details This is primarily used to implement the output_iterator capabilities
+ * on the @ref apex::mixin::iterator
+ * @ingroup concepts
  * @see apex::iter::write_into
  * @note The underlying type of `T` must differ from the underlying type of `I`.
- * This is enforced with @concept different_from
+ * This is enforced with @ref apex::different_from
  */
 template <class I, class T>
 concept indirectly_writable_into = different_from<I, T>
@@ -43,9 +51,11 @@ concept indirectly_writable_into = different_from<I, T>
     { ::apex::iter::write_into(iterable, static_cast<T&&>(value)) } -> same_as<void>;
   };
 
-/** @brief Specifies that the result of @ref apex::iter::read_from can be used with
+/** @interface apex::iter::indirectly_addressable<I>
+ * @brief Specifies that the result of @ref apex::iter::read_from can be used with
  * `std::addressof`
  * This is primarily used to detect if @ref apex::proxy::arrow should be used.
+ * @ingroup concepts
  */
 template <class I>
 concept indirectly_addressable = indirectly_readable_from<I>
@@ -53,6 +63,9 @@ concept indirectly_addressable = indirectly_readable_from<I>
     requires ::std::is_lvalue_reference_v<decltype(::apex::iter::read_from(iterable))>;
   };
 
+/** @interface weakly_incrementable<I>
+ * @ingroup concepts
+ */
 template <class I>
 concept weakly_incrementable = requires (I iterable) {
   { ::apex::iter::next(iterable) } -> same_as<void>;

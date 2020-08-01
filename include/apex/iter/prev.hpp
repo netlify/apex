@@ -39,10 +39,10 @@ private:
 namespace apex::iter {
 
 /** @brief Move an iterable to its predecessor.
- * The order of operations is to first call a member version of `.prev()`,
- * followed by an ADL lookup form of `prev`, and lastly attempt to call
- * @ref apex::iter::advance with `-1`.
- * @ingroup cpo
+ * @details The order of operations is to first call a member version of
+ * `.%prev()`, followed by an ADL lookup form of `prev`, and lastly attempt to
+ * call @link advance apex::iter::advance @endlink with `-1`.
+ * @ingroup cpo-iterable
  */
 inline constexpr auto const prev = detail::iter::prev::function { };
 

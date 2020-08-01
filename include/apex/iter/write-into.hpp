@@ -12,7 +12,7 @@ struct function final { };
 
 namespace apex::iter {
 
-
+/** @ingroup cpo-iterable */
 inline constexpr auto const write_into = detail::iter::distance_to::function { };
 
 } /* namespace apex::iter */

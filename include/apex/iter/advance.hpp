@@ -37,11 +37,11 @@ private:
 
 namespace apex::iter {
 
-/** @brief advance an iterable by some offset
+/** @brief Advance an iterable by some offset.
  * Member versions of `advance` are called first, followed by ADL lookups of
  * advance.
- * @note rvalue references cannot be used with @c iter::advance
- * @ingroup cpo
+ * @note rvalue references cannot be used with `apex::iter::advance`.
+ * @ingroup cpo-iterable
  */
 inline constexpr auto const advance = detail::iter::advance::function { };
 
