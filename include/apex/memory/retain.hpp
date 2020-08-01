@@ -2,6 +2,7 @@
 #define APEX_MEMORY_RETAIN_HPP
 
 #include <apex/core/concepts.hpp>
+#include <apex/core/meta.hpp>
 
 #include <memory>
 #include <atomic>
@@ -86,7 +87,7 @@ struct retain_ptr {
 
   using pointer = detected_or_t<
     std::add_pointer_t<element_type>,
-    detect::types::pointer,
+    meta::pointer,
     traits_type
   >;
 

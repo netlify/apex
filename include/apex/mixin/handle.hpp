@@ -7,28 +7,39 @@
 // TODO: consider renaming the type to resource_handle, or just 'resource'
 // We can also use the name 'resource' for the concept itself. All of this is
 // in flux.
-namespace apex::mixin::impl {
+namespace apex::mixin::detail {
 
 template <class T>
-concept pointer_only = undetectable_with<meta::element_type, T>
-  and detectable_with<meta::pointer, T>;
+concept has_element_type = requires { typename T::element_type; };
 
 template <class T>
-concept element_only = not pointer_only<T>
-  and detectable_with<meta::element_type, T>;
+concept has_pointer = requires { typename T::pointer; };
 
-/* This has to be more constrained and thus subsume pointer_only and element_only
- */
 template <class T>
-concept element_and_pointer = not pointer_only<T> and not element_only<T> 
-  and detectable_with<meta::element_type, T>
-  and detectable_with<meta::pointer, T>;
+concept element_only = has_element_type<T> and not has_pointer<T>;
+
+template <class T>
+concept pointer_only = not has_element_type<T> and has_pointer<T>;
+
+template <class T>
+concept element_and_pointer = has_element_type<T> and has_pointer<T>;
 
 template <class> struct pointer_type_of;
 
-template <element_and_pointer T> struct pointer_type_of<T> : type_identity<meta::pointer<T>> { };
-template <element_only T> struct pointer_type_of<T> : add_pointer<meta::element_type<T>> { };
-template <pointer_only T> struct pointer_type_of<T> : type_identity<meta::pointer<T>> { };
+template <element_only T>
+struct pointer_type_of<T> :
+  ::std::add_pointer_t<typename T::element_type>
+{ };
+
+template <pointer_only T>
+struct pointer_type_of<T> :
+  type_identity<typename T::pointer>
+{ };
+
+template <element_and_pointer T>
+struct pointer_type_of<T> :
+  type_identity<typename T::pointer>
+{ };
 
 template <class T>
 using pointer_type_of_t = typename pointer_type_of<T>::type;
@@ -54,7 +65,7 @@ concept releasable = requires (T object) {
   { object.release() } -> same_as<typename pointer_type_of<T>::type>;
 };
 
-} /* namespace apex::mixin::impl */
+} /* namespace apex::mixin::detail */
 
 namespace apex::mixin {
 
@@ -72,10 +83,10 @@ namespace apex::mixin {
  * @note This should ONLY be used to wrapping object lifetimes when other types
  * do not follow RAII. This applies to both C and C++ APIs
  */
-template <class T, impl::handle_storage Storage>
+template <class T, detail::handle_storage Storage>
 struct handle {
   using storage_type = Storage;
-  using pointer = impl::pointer_type_of_t<remove_cvref_t<storage_type>>;
+  using pointer = detail::pointer_type_of_t<remove_cvref_t<storage_type>>;
   using handle_type = handle;
 
   handle (std::nullptr_t) noexcept :
@@ -92,7 +103,7 @@ struct handle {
   }
   void reset () noexcept { this->storage.reset(); }
 
-  pointer release () noexcept requires impl::releasable<storage_type> {
+  pointer release () noexcept requires detail::releasable<storage_type> {
     return this->storage.release();
   }
 
