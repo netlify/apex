@@ -28,10 +28,10 @@ private:
 };
 
 struct scope_failure_policy {
-  void release () noexcept { this->errors = std::numeric_limits<int>::max(); }
+  void release () noexcept { this->errors = ::std::numeric_limits<int>::max(); }
 protected:
   bool should_execute () const noexcept {
-    return this->errors < std::uncaught_exceptions();
+    return this->errors < ::std::uncaught_exceptions();
   }
 private:
   int errors { };
@@ -48,7 +48,7 @@ struct basic_scope_exit : Policy {
   template <constructible_from<Fn> F>
   basic_scope_exit (F&& function) noexcept :
     policy_type { },
-    function { std::forward<F>(function) }
+    function { static_cast<F&&>(function) }
   { }
 
   basic_scope_exit (basic_scope_exit const&) = delete;
@@ -59,7 +59,7 @@ struct basic_scope_exit : Policy {
   basic_scope_exit& operator = (basic_scope_exit&&) = delete;
 
   ~basic_scope_exit () {
-    if (this->should_execute()) { std::invoke(this->function); }
+    if (this->should_execute()) { ::std::invoke(this->function); }
   }
 
   using policy_type::release;

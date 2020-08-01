@@ -137,7 +137,7 @@ struct span {
     { r.size() } -> convertible_to<size_type>;
     { r.data() } -> convertible_to<pointer>;
   } constexpr span (R&& r) noexcept :
-    span { std::data(std::forward<R>(r)), std::size(std::forward<R>(r)) }
+    span { ::std::data(static_cast<R&&>(r)), ::std::size(static_cast<R&&>(r)) }
   { }
 
   template <class U, size_t N>

@@ -3,27 +3,20 @@
 
 #include <apex/core/concepts.hpp>
 
-// IWYU pragma: begin_exports
 #include <utility>
 #include <cstring>
-// IWYU pragma: end_exports
 
 // gotta love writing shims for features we don't have :(
 #if not APEX_CHECK_API(integer_comparison_functions, 202002)
 namespace apex::impl {
 
 template <class T>
-concept cmp_integer = integral<T> and requires {
-  requires not same_as<remove_cvref_t<T>, std::byte>;
-  requires not same_as<remove_cvref_t<T>, char32_t>;
-  requires not same_as<remove_cvref_t<T>, char16_t>;
-  #if APEX_CHECK_CXX(char8_t, 201811)
-  requires not same_as<remove_cvref_t<T>, char8_t>;
-  #endif /* APEX_CHECK_CXX(char8_t, 201811) */
-  requires not same_as<remove_cvref_t<T>, wchar_t>;
-  requires not same_as<remove_cvref_t<T>, char>;
-  requires not same_as<remove_cvref_t<T>, bool>;
-};
+concept cmp_integer = integral<T>
+  and not character<T>
+  and requires {
+    requires different_from<std::byte, T>;
+    requires different_from<bool, T>;
+  };
 
 } /* namespace apex::impl */
 #endif /* not APEX_CHECK_API(integer_comparison_functions, 202002) */
@@ -35,10 +28,8 @@ using std::declval;
 template <class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 template <class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-// TODO: add enumeration concept
-template <class T> requires std::is_enum_v<T>
-constexpr auto to_underlying (T value) noexcept -> std::underlying_type_t<T> {
-  return static_cast<std::underlying_type_t<T>>(value);
+constexpr auto to_underlying (enumeration auto value) noexcept {
+  return static_cast<std::underlying_type_t<decltype(value)>>(value);
 }
 
 // NOTE: The paper this is for has undergone some feedback, including a new

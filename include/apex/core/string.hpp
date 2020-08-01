@@ -24,18 +24,18 @@ struct case_insensitive_traits : std::char_traits<char> {
   static auto find (char const* s, size_t n, char const& a) noexcept {
     auto begin = s;
     auto end = s + n;
-    auto iter = std::find_if(begin, end, [a = convert(a)] (auto c) noexcept {
+    auto iter = ::std::find_if(begin, end, [a = convert(a)] (auto c) noexcept {
       return convert(c) == a;
     });
     return iter != end ? iter : nullptr;
   }
 private:
   static char convert (char ch) noexcept {
-    return static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    return static_cast<char>(::std::tolower(static_cast<unsigned char>(ch)));
   }
 };
 
-template <class CharT, class Traits=std::char_traits<CharT>>
+template <class CharT, class Traits=::std::char_traits<CharT>>
 struct basic_zstring_view {
   using difference_type = ptrdiff_t;
   using value_type = CharT;
@@ -94,7 +94,7 @@ struct basic_zstring_view {
   // TODO: Replace all comparison operators with the code below.
   // template <class Allocator>
   // constexpr auto operator <=> (string_type<Allocator> const& that) const noexcept {
-  //   return static_cas<<view_type>(*this) <=> that;
+  //   return static_cast<<view_type>(*this) <=> that;
   // }
   // constexpr auto operator <=> (basic_zstring_view const& that) const noexcept {
   //   return *this <=> static_cast<view_type>(that);

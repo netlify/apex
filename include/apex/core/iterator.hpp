@@ -49,7 +49,7 @@ requires detectable_with<meta::element_type, T>
   and detectable_with<meta::value_type, T>
   and requires { typename ::std::common_type<meta::element_type<T>, meta::value_type<T>>::type; }
 struct indirectly_readable_traits<T> :
-  std::common_type<typename T::element_type, typename T::value_type>
+  ::std::common_type<typename T::element_type, typename T::value_type>
 { };
 
 template <class I>

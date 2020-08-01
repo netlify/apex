@@ -6,7 +6,6 @@
 // IWYU pragma: end_exports
 
 #include <apex/core/prelude.hpp>
-#include <apex/detect/types.hpp>
 
 namespace apex {
 
