@@ -56,8 +56,11 @@ template <class T> concept floating_point = std::is_floating_point_v<T>;
 template <class T>
 concept swappable = requires (T& a, T& b) { ranges::swap(a, b); };
 template <class T, class U>
-concept swappable_with = common_reference_with<T, U> and requires (T&& t, U&& u) {
-  std::swap(std::forward<T>(t), std::forward<T>(t));
+concept swappable_with = common_reference_with<T, U> and requires (T&& x, U&& y) {
+  ranges::swap(static_cast<T&&>(x), static_cast<T&&>(x));
+  ranges::swap(static_cast<U&&>(y), static_cast<U&&>(y));
+  ranges::swap(static_cast<T&&>(x), static_cast<U&&>(y));
+  ranges::swap(static_cast<U&&>(y), static_cast<T&&>(x));
 };
 
 template <class T>
@@ -107,7 +110,7 @@ concept regular = semiregular<T> and equality_comparable<T>;
 // callable
 template <class F, class... Args>
 concept invocable = requires (F&& f, Args&&... args) {
-  std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+  ::std::invoke(static_cast<F&&>(f), static_cast<Args&&>(args)...);
 };
 
 template <class F, class... Args>
@@ -115,7 +118,7 @@ concept regular_invocable = invocable<F, Args...>;
 
 template <class F, class... Args>
 concept predicate = regular_invocable<F, Args...>
-  and boolean<std::invoke_result_t<F, Args...>>;
+  and boolean<::std::invoke_result_t<F, Args...>>;
 
 template <class R, class T, class U>
 concept relation = predicate<R, T, T> and predicate<R, U, U>
@@ -170,6 +173,13 @@ concept predecrementable = requires (T x) {
 };
 
 // custom concepts
+template <class T> concept enumeration = ::std::is_enum_v<T>;
+template <class T> concept character = similar_to<char32_t, T>
+  or similar_to<char16_t, T>
+  or similar_to<char8_t, T>
+  or similar_to<wchar_t, T>
+  or similar_to<char, T>;
+
 template <class T>
 concept complete_type = requires {
   { sizeof(remove_cvref_t<remove_pointer_t<T>>) } -> same_as<size_t>;
@@ -190,7 +200,7 @@ template <class T> concept complexly_destructible = not trivially_destructible<T
 // addressof, boolean operators, modulo and (at some point) enforce a form
 // of operator <=> if its defined.
 template <class T>
-concept bit_flag = ::std::is_enum_v<T> and requires (T t) {
+concept bit_flag = enumeration<T> and requires (T t) {
   requires convertible_to<::std::underlying_type_t<T>, unsigned int>;
   requires not boolean<T>;
 
