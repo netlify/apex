@@ -1,6 +1,7 @@
 #ifndef APEX_SQLITE_CONNECTION_HPP
 #define APEX_SQLITE_CONNECTION_HPP
 
+#include <apex/sqlite/memory.hpp>
 #include <filesystem>
 
 //#include <apex/core/outcome.hpp>
@@ -8,6 +9,11 @@
 struct sqlite3;
 
 namespace apex::sqlite {
+
+template <>
+struct default_delete<sqlite3> {
+  void operator () (sqlite3*) noexcept;
+};
 
 struct context;
 struct table;
@@ -19,9 +25,10 @@ enum class pure : bool { no, yes };
 using aggregate_t = auto (*)(context&, aggregated) -> void;
 using function_t = auto (*)(context&) -> void;
 
-struct connection {
-  using handle_type = std::unique_ptr<sqlite3>;
-  using pointer = handle_type::pointer;
+struct connection : protected unique_handle<sqlite3> {
+  using handle_type::get;
+
+  connection (::std::filesystem::path const&) noexcept(false);
 
 //  static outcome<connection, std::error_code> temporary () noexcept;
 //
@@ -36,14 +43,8 @@ struct connection {
 
   void swap (connection&) noexcept;
 
-  pointer get () const noexcept;
-
   ptrdiff_t changes () const noexcept;
   bool autocommit () const noexcept;
-private:
-  connection (pointer) noexcept;
-
-  handle_type handle;
 };
 
 void execute (connection&, std::string_view) noexcept(false);

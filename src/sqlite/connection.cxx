@@ -3,9 +3,21 @@
 #include <apex/sqlite/table.hpp>
 #include <apex/sqlite/error.hpp>
 #include <apex/core/memory.hpp>
+#include <apex/memory/out.hpp>
 #include <sqlite3.h>
 
 namespace apex::sqlite {
+
+void default_delete<sqlite3>::operator () (sqlite3* ptr) noexcept {
+  sqlite3_close_v2(ptr);
+}
+
+//connection::connection (::std::filesystem::path const& path) noexcept(false) :
+//  handle_type { }
+//{
+//  sqlite3_open_v2(path.c_str(), out_ptr(static_cast<handle_type&>(*this)), SQLITE_OPEN_READONLY, nullptr);
+//  throw ::std::runtime_error("Not yet implemented");
+//}
 
 void plugin (connection& conn, std::string_view name, std::shared_ptr<table> item) noexcept(false) {
   auto destructor = [] (void* ptr) noexcept {
