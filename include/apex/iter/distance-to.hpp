@@ -1,6 +1,8 @@
 #ifndef APEX_ITER_DISTANCE_TO_HPP
 #define APEX_ITER_DISTANCE_TO_HPP
 
+#include <apex/core/prelude.hpp>
+
 namespace apex::detail::iter::distance_to {
 
 template <class T> void distance_to (T&&, T&&) = delete;
@@ -33,7 +35,7 @@ namespace apex::iter {
 
 /** @brief Get the distance between two iterable types.
  * @bug Only same types are currently usable
- * @ingroup cpo-iterable
+ * @cpo{iterable}
  */
 inline constexpr auto const distance_to = detail::iter::distance_to::function { };
 

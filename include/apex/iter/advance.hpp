@@ -37,11 +37,19 @@ private:
 
 namespace apex::iter {
 
-/** @brief Advance an iterable by some offset.
- * Member versions of `advance` are called first, followed by ADL lookups of
- * advance.
+/** @var apex::iter::advance
+ * @cpo{iterable}
+ * @brief Advance an iterable by some offset.
+ * @details This function object will try to call (in order):
+ *
+ *  1. `value.advance(offset)`
+ *  2. `advance(value, offset)`
+ *
+ * where the latter is subjugated to an ADL lookup.
+ *
+ * @param[in] value A reference type @c T
+ * @param[in] offset A value of type `iter_difference_t<T>` to advance @p value by
  * @note rvalue references cannot be used with `apex::iter::advance`.
- * @ingroup cpo-iterable
  */
 inline constexpr auto const advance = detail::iter::advance::function { };
 

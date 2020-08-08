@@ -1,6 +1,8 @@
 #ifndef APEX_ITER_READ_FROM_HPP
 #define APEX_ITER_READ_FROM_HPP
 
+#include <apex/core/prelude.hpp>
+
 namespace apex::detail::iter::read_from {
 
 template <class T> void read_from (T const&) = delete;
@@ -32,10 +34,10 @@ private:
 namespace apex::iter {
 
 /** @brief Read a value from the given parameter.
+ * @cpo{iterable}
  * Member versions of `read_from` are called first, followed by ADL lookups
  * of `read_from`.
  * @note `read_from` is free to return references *or* values.
- * @ingroup cpo-iterable
  */
 inline constexpr auto const read_from = detail::iter::read_from::function { };
 

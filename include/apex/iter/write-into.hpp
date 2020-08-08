@@ -1,6 +1,8 @@
 #ifndef APEX_ITER_WRITE_INTO_HPP
 #define APEX_ITER_WRITE_INTO_HPP
 
+#include <apex/core/prelude.hpp>
+
 namespace apex::detail::iter::write_into {
 
 template <class T, class U>
@@ -33,8 +35,8 @@ private:
 
 namespace apex::iter {
 
-/** @ingroup cpo-iterable */
-inline constexpr auto const write_into = detail::iter::distance_to::function { };
+/** @cpo{iterable} */
+inline constexpr auto const write_into = detail::iter::write_into::function { };
 
 } /* namespace apex::iter */
 

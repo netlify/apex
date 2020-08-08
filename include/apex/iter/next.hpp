@@ -43,11 +43,12 @@ private:
 
 namespace apex::iter {
 
-/** @brief Move an iterable to its successor.
+/** @var apex::iter::next
+ * @brief Move an iterable to its successor.
+ * @cpo{iterable}
  * @details The order of operations is to first call a member version of
  * `.%next()`, followed by an ADL lookup form of `next`, and lastly attempt to
- * call @link .advance() apex::iter::advance @endlink with `1`.
- * @ingroup cpo-iterable
+ * call apex::iter::advance with `1`.
  */
 inline constexpr auto const next = detail::iter::next::function { };
 
