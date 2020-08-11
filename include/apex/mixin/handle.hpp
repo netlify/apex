@@ -47,7 +47,7 @@ using pointer_type_of_t = typename pointer_type_of<T>::type;
 template <class T>
 concept handle_storage = requires (T object) {
   //requires equality_comparable_with<T, nullptr_t>;
-  //requires totally_ordered<T>;
+  requires totally_ordered<T>;
   requires swappable<T>;
   requires movable<T>;
 

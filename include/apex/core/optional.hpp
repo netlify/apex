@@ -34,6 +34,15 @@ namespace apex {
 
 template <class> struct optional;
 
+/** @brief Manages an *optional* value. Similar to std::optional
+ * @monad
+ * Unlike C++'s standard library, a few additional extensions are added. These
+ * include monadic operations typically found in other programming languages
+ * such as Rust and Haskell, as well as the ability to have an `optional<T&>`
+ * with a slightly reduced interface. e.g., one can #transform the value stored
+ * within an optional, returning a new optional with the resulting value stored
+ * in it, or an empty optional if the original was also empty.
+ */
 template <destructible T>
 struct optional<T> final {
   using value_type = T;
