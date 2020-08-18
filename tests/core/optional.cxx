@@ -28,23 +28,23 @@ TEST_CASE("nullopt-constructor") {
   CHECK_FALSE(opt);
 }
 
-//TEST_CASE("copy-value-constructor") {
-//  std::string text { "copy-value" };
-//  apex::optional<std::string> opt { text };
-//
-//  CHECK_FALSE(text.empty());
-//  CHECK(opt);
-//  CHECK(opt.value() == text);
-//  CHECK(opt.value() == "copy-value");
-//}
+TEST_CASE("copy-value-constructor") {
+  std::string text { "copy-value" };
+  apex::optional<std::string> opt { text };
 
-//TEST_CASE("move-value-constructor") {
-//  std::string text { "move-value" };
-//  apex::optional<std::string> opt { std::move(text) };
-//  CHECK(opt);
-//  CHECK(text.empty());
-//  CHECK(opt.value() == "move-value");
-//}
+  CHECK_FALSE(text.empty());
+  CHECK(opt);
+  CHECK(opt.value() == text);
+  CHECK(opt.value() == "copy-value");
+}
+
+TEST_CASE("move-value-constructor") {
+  std::string text { "move-value" };
+  apex::optional<std::string> opt { std::move(text) };
+  CHECK(opt);
+  CHECK(text.empty());
+  CHECK(opt.value() == "move-value");
+}
 
 TEST_CASE("reference-constructor") {
   int x = 42;
@@ -73,30 +73,30 @@ TEST_CASE("move-assignment") {
   CHECK(*move == 4);
 }
 
-//TEST_CASE("copy-value-assignment") {
-//  apex::optional<std::string> opt { };
-//  std::string value { "copy-value" };
-//  opt = value;
-//  CHECK(value.empty());
-//  CHECK(opt);
-//  CHECK(*opt == "copy-value");
-//}
-//
-//TEST_CASE("move-value-assignment") {
-//  apex::optional<std::string> opt { };
-//  std::string value { "move-value" };
-//  opt = std::move(value);
-//  CHECK(value.empty());
-//  CHECK(opt);
-//  CHECK(*opt == "move-value");
-//}
+TEST_CASE("copy-value-assignment") {
+  apex::optional<std::string> opt { };
+  std::string value { "copy-value" };
+  opt = value;
+  CHECK(value.empty());
+  CHECK(opt);
+  CHECK(*opt == "copy-value");
+}
+
+TEST_CASE("move-value-assignment") {
+  apex::optional<std::string> opt { };
+  std::string value { "move-value" };
+  opt = std::move(value);
+  CHECK(value.empty());
+  CHECK(opt);
+  CHECK(*opt == "move-value");
+}
 
 
-//TEST_CASE("arrow-operator") {
-//  apex::optional<std::string> opt { "arrow" };
-//  CHECK(opt);
-//  CHECK_FALSE(opt->empty());
-//}
+TEST_CASE("arrow-operator") {
+  apex::optional<std::string> opt { "arrow" };
+  CHECK(opt);
+  CHECK_FALSE(opt->empty());
+}
 
 TEST_CASE("try-emplace") {
   apex::optional<int> x { 42 };

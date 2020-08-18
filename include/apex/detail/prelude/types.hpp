@@ -38,10 +38,14 @@ using u8 = ::std::uint8_t;
 
 using f64 = double;
 using f32 = float;
-/* This is a clang extension.
+
+/** A 'half' floating point type.
+ *
  * When working with this type, it first is converted to a f32, and then
  * converted back down to an f16. This behavior cannot currently be changed
- * under clang. It is stored in the binary16 format.
+ * under clang. It is stored in the binary16 format, which makes it safe for
+ * serialization to/from disk, however signalling/quiet NaNs are not required
+ * to stay the exact same.
  */
 using f16 = __fp16;
 
