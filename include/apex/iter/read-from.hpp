@@ -34,6 +34,7 @@ private:
 namespace apex::iter {
 
 /** @brief Read a value from the given parameter.
+ * @hideinitializer
  * @cpo{iterable}
  * Member versions of `read_from` are called first, followed by ADL lookups
  * of `read_from`.

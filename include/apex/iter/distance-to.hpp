@@ -35,6 +35,7 @@ namespace apex::iter {
 
 /** @brief Get the distance between two iterable types.
  * @bug Only same types are currently usable
+ * @hideinitializer
  * @cpo{iterable}
  */
 inline constexpr auto const distance_to = detail::iter::distance_to::function { };

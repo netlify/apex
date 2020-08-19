@@ -45,6 +45,7 @@ namespace apex::iter {
 
 /** @var apex::iter::next
  * @brief Move an iterable to its successor.
+ * @hideinitializer
  * @cpo{iterable}
  * @details The order of operations is to first call a member version of
  * `.%next()`, followed by an ADL lookup form of `next`, and lastly attempt to

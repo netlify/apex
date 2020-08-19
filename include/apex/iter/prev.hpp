@@ -40,6 +40,7 @@ namespace apex::iter {
 
 /** @brief Move an iterable to its predecessor.
  * @cpo{iterable}
+ * @hideinitializer
  * @details The order of operations is to first call a member version of
  * `.%prev()`, followed by an ADL lookup form of `prev`, and lastly attempt to
  * call apex#iter#advance with `-1`.

@@ -35,7 +35,10 @@ private:
 
 namespace apex::iter {
 
-/** @cpo{iterable} */
+/**
+ * @hideinitializer
+ * @cpo{iterable}
+ */
 inline constexpr auto const write_into = detail::iter::write_into::function { };
 
 } /* namespace apex::iter */

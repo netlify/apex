@@ -53,7 +53,10 @@ private:
 
 namespace apex::iter {
 
-/** @cpo{iterable} */
+/**
+ * @hideinitializer
+ * @cpo{iterable}
+ */
 inline constexpr auto const equal_to = detail::iter::equal_to::function { };
 
 } /* namespace apex::iter */

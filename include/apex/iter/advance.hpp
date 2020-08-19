@@ -39,6 +39,7 @@ namespace apex::iter {
 
 /** @var apex::iter::advance
  * @cpo{iterable}
+ * @hideinitializer
  * @brief Advance an iterable by some offset.
  * @details This function object will try to call (in order):
  *
