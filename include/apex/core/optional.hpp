@@ -1,7 +1,6 @@
 #ifndef APEX_CORE_OPTIONAL_HPP
 #define APEX_CORE_OPTIONAL_HPP
 
-#include <apex/detail/prelude/enable.hpp>
 #include <apex/detail/core/optional.hpp>
 
 // We implement our own optional because std::optional
@@ -40,8 +39,8 @@ namespace apex {
  */
 template <class> struct optional;
 
-template <class T>
-struct optional final : private detail::optional::base<T> {
+template <destructible T>
+struct optional<T> final : private detail::optional::base<T> {
   using value_type = T;
   using base_type = detail::optional::base<T>;
 
