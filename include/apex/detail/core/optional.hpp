@@ -14,9 +14,9 @@ namespace apex::detail::optional {
 
 template <class T, class U>
 static constexpr bool different_value = requires {
-  requires is_constructible_v<T, U>;
-  requires is_assignable_v<T, U>;
-  requires not is_scalar_v<T> or distinct_from<::std::decay_t<U>, T>;
+  requires ::std::is_constructible_v<T, U>;
+  requires ::std::is_assignable_v<T, U>;
+  requires not ::std::is_scalar_v<T> or distinct_from<::std::decay_t<U>, T>;
 };
 
 template <class T>
