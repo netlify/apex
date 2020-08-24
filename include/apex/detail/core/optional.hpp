@@ -69,7 +69,7 @@ protected:
 };
 
 template <class T>
-struct operations : storage_base<T> {
+struct operations_base : storage_base<T> {
   using storage_base<T>::storage_base;
 
   constexpr explicit operator bool () const noexcept { return this->has_value(); }
@@ -110,8 +110,8 @@ protected:
 };
 
 template <class T>
-struct copy_constructible_base : operations<T> {
-  using operations<T>::operations;
+struct copy_constructible_base : operations_base<T> {
+  using operations_base<T>::operations_base;
 
   constexpr copy_constructible_base (copy_constructible_base const& that)
   noexcept(::std::is_nothrow_copy_constructible_v<T>) {
@@ -170,8 +170,8 @@ struct move_assignable_base : copy_assignable_base<T> {
 };
 
 template <trivially_copy_constructible T>
-struct copy_constructible_base<T> : operations<T> {
-  using operations<T>::operations;
+struct copy_constructible_base<T> : operations_base<T> {
+  using operations_base<T>::operations_base;
 };
 
 template <trivially_move_constructible T>
