@@ -27,13 +27,18 @@ Currently, this is enforced with a mix of both clang-tidy and clang-format.
 That said, clang-format cannot (currently) enforce several style decisions
 found in our code base:
 
- * east `const` -> `auto const name`, `type const&`, etc.
+ * Use east `const` (i.e., `auto const name`, `type const&`, etc.)
  * `everything_is_snake_case`, `template <class ExceptForTemplateParameters>`
  * `typename` may only be used when using a dependent type, or for a 'valid
      type check' in a `requires` expression.
  * `bool` may only be used as a return type. Functions taking a `bool` as a
      parameter are banned
+ * Functions that return `bool` must be marked `[[nodiscard]]`
  * 2 spaces per indent
+ * C style casts are banned. Use the appropriate C++ cast keyword.
+ * Do not use `std::forward`. Use a `static_cast` to a forwarding reference
+     instead.
+ * Do not prefix 'getters' and 'setters' with `get_` and `set_`
 
 (NOTE: More will be added above as time goes on, however clang-tidy and
 clang-format cannot always be used, so following them is less important than
@@ -42,19 +47,22 @@ other checks)
 ### Git Commit Messages
 
 Git commit messages should utilize [gitm😍ji](https://gitmoji.carloscuesta.me/)
-for each line item. If a line item requires more information, place it in a
-paragraph below the line item with a 2 space indent (unless the description is
-for the subject line of the commit). e.g.,
+or the actual emoji themselves for each line item. If a line item requires more
+information, place it in a paragraph below the line item with a 2 space indent
+(unless the description is for the subject line of the commit). e.g.,
 
 ```gitcommit
 ⚡ Improve the speed with fooing the bar
 
   Fooing a bar has been proven to be slow in certain cases due to a lack of
   constexpr-ing all the things. This change improves this by marking some
-  foo overloads constexpr when operating on a bar.
+  foo overloads constexpr when operating on a bar. We cannot foo a baz, yet,
+  as this is technically a defect report and we'd rather not rely on undefined
+  behavior.
 🐛 Resolve outstanding std::launder bug
-  After consulting with 13 oracles, 12 wizards, and the editor of the C++ standard
-  we've finally figured out when to use std::launder: never, unless told to otherwise
+  After consulting with 13 oracles, 12 wizards, and the editor of the C++
+  standard we've finally figured out when to use std::launder: never, unless
+  told to otherwise
 ♻ Refactor several functions to use concepts
 ```
 
