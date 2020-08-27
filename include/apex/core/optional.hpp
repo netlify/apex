@@ -86,7 +86,7 @@ struct optional<T> final : private detail::optional::base<T> {
   optional& operator = (optional const&) = default;
   optional& operator = (optional&&) = default;
 
-  friend void swap (optional& lhs, optional& rhs) noexcept(noexcept(apex::ranges::swap)) {
+  friend void swap (optional& lhs, optional& rhs) noexcept(noexcept(apex::ranges::swap(lhs, rhs))) {
     if (not lhs and not rhs) { return; }
     if (lhs and rhs) { return apex::ranges::swap(*lhs, *rhs); }
     auto& uninitialized = lhs ? rhs : lhs;
