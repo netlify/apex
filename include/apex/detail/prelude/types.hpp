@@ -50,16 +50,25 @@ using f32 = float;
 using f16 = __fp16;
 
 /* Turns out, having an empty struct is really useful! */
-
 struct empty { };
+
 /* Used for prioritizing possibly ambiguous overloads. I is the "level", where
  * higher numbers mean a higher level of preference
  */
 template <size_t I> struct preference : preference<I - 1> { };
 template <> struct preference<0> { };
-template <size_t I> inline constexpr auto const prefer = preference<I> { };
 
+
+/** @brief unexpect_t as defined by P0323R9 */
+struct unexpect_t {
+  constexpr explicit unexpect_t (int) noexcept { }
+  constexpr unexpect_t () noexcept = delete;
+};
+
+/* Inline instances of the above declared types */
+template <size_t I> inline constexpr auto const prefer = preference<I> { };
 [[clang::no_destroy]] inline constexpr auto const ignore = detail::prelude::types::ignore_t { };
+[[clang::no_destroy]] inline constexpr auto const unexpect = unexpect_t { __LINE__ };
 
 } /* namespace apex */
 

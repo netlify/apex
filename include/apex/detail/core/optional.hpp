@@ -25,15 +25,13 @@ struct storage_base {
 
   template <class... Args> requires constructible_from<value_type, Args...>
   constexpr storage_base (::std::in_place_t, Args&&... args)
-  noexcept(::std::is_nothrow_constructible_v<value_type, Args...>) :
+  noexcept(safely_constructible_from<value_type, Args...>) :
     storage(static_cast<Args&&>(args)...),
     valid(true)
   { }
 
   constexpr storage_base () noexcept : valid { false } { }
-  ~storage_base () noexcept(::std::is_nothrow_destructible_v<value_type>) {
-    this->clear();
-  }
+  ~storage_base () noexcept(destructible<value_type>) { this->clear(); }
 
 protected:
   void clear () noexcept {
@@ -50,7 +48,7 @@ struct storage_base<T> {
 
   template <class... Args> requires constructible_from<value_type, Args...>
   constexpr storage_base (::std::in_place_t, Args&&... args)
-  noexcept(::std::is_nothrow_constructible_v<value_type, Args...>) :
+  noexcept(safely_constructible_from<value_type, Args...>) :
     storage(static_cast<Args&&>(args)...),
     valid(true)
   { }
@@ -82,8 +80,7 @@ struct operations_base : storage_base<T> {
 
 protected:
   template <class... Args> requires constructible_from<T, Args...>
-  constexpr void construct (Args&&... args)
-  noexcept(::std::is_nothrow_constructible_v<T, Args...>) {
+  constexpr void construct (Args&&... args) noexcept(safely_constructible_from<T, Args...>) {
     ::apex::construct_at(::std::addressof(this->get()), static_cast<Args&&>(args)...);
     this->valid = true;
   }
@@ -98,15 +95,10 @@ protected:
     this->construct(static_cast<U&&>(that).get());
   }
 
-  // TODO: Investigate whether this requires the use of std::launder
-  void clear () noexcept {
-    if (*this) { ::apex::destroy_at(::std::addressof(this->get())); }
-  }
-
-  T const&& get () const&& noexcept { return static_cast<xvalue_of<T const>>(this->storage); }
-  T const& get () const& noexcept { return this->storage; }
-  T&& get () && noexcept { return static_cast<xvalue_of<T>>(this->storage); }
-  T& get () & noexcept { return this->storage; }
+  decltype(auto) get () const&& noexcept { return static_cast<T const&&>(this->storage); }
+  decltype(auto) get () const& noexcept { return static_cast<T const&>(this->storage); }
+  decltype(auto) get () && noexcept { return static_cast<T&&>(this->storage); }
+  decltype(auto) get () & noexcept { return static_cast<T&>(this->storage); }
 };
 
 template <class T>
@@ -114,7 +106,7 @@ struct copy_constructible_base : operations_base<T> {
   using operations_base<T>::operations_base;
 
   constexpr copy_constructible_base (copy_constructible_base const& that)
-  noexcept(::std::is_nothrow_copy_constructible_v<T>) {
+  noexcept(safely_copy_constructible<T>) {
     if (that) { this->construct(that.get()); }
   }
   constexpr copy_constructible_base (copy_constructible_base&&) noexcept = default;
@@ -130,7 +122,7 @@ struct move_constructible_base : copy_constructible_base<T> {
 
   constexpr move_constructible_base (move_constructible_base const&) noexcept = default;
   constexpr move_constructible_base (move_constructible_base&& that)
-  noexcept(::std::is_nothrow_move_constructible_v<T>) {
+  noexcept(safely_move_constructible<T>) {
     if (that) { this->construct(static_cast<T&&>(that.get())); }
   }
   constexpr move_constructible_base () noexcept = default;

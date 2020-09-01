@@ -77,8 +77,8 @@ TEST_CASE("copy-value-assignment") {
   apex::optional<std::string> opt { };
   std::string value { "copy-value" };
   opt = value;
-  CHECK(value.empty());
   CHECK(opt);
+  CHECK(*opt == value);
   CHECK(*opt == "copy-value");
 }
 

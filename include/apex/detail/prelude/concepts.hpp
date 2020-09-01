@@ -133,6 +133,45 @@ concept weakly_equality_comparable_with = requires (remove_cvref_t<T> const& x, 
 
 #endif /* APEX_CHECK_API(concepts, 202002) */
 
+/* This is technically used internally only, but is used in more than one spot
+ * for converting constructors
+ */
+template <class T, class U>
+concept convert_constructible_with = constructible_from<T, U const&&>
+  or constructible_from<T, U const&>
+  or constructible_from<T, U&&>
+  or constructible_from<T, U&>
+  or convertible_to<U const&&, T>
+  or convertible_to<U const&, T>
+  or convertible_to<U&&, T>
+  or convertible_to<U&, T>;
+
+template <class T, class U>
+concept convert_assignable_with = convert_constructible_with<T, U>
+  or ::std::is_assignable_v<T&, U const&&>
+  or ::std::is_assignable_v<T&, U const&>
+  or ::std::is_assignable_v<T&, U&&>
+  or ::std::is_assignable_v<T&, U&>;
+
+template <class T, class U>
+concept nonconvert_constructible_with = not convert_constructible_with<T, U>;
+
+template <class T, class U>
+concept nonconvert_assignable_with = nonconvert_constructible_with<T, U> 
+  and not convert_assignable_with<T, U>;
+
+template <class T, class... Args>
+concept safely_constructible_from = constructible_from<T, Args...>
+  and ::std::is_nothrow_constructible_v<T, Args...>;
+
+template <class T>
+concept safely_copy_constructible = copy_constructible<T>
+  and ::std::is_nothrow_copy_constructible_v<T>;
+
+template <class T>
+concept safely_move_constructible = move_constructible<T>
+  and ::std::is_nothrow_move_constructible_v<T>;
+
 /* These are defined in P2199, but there's an issue regarding subsumption that
  * needs to be resolved. There's no guarantee that we'll get it right because
  * the definition of same_as might need to be redefined as a result :/
