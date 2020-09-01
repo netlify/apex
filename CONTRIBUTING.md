@@ -39,6 +39,11 @@ found in our code base:
  * Do not use `std::forward`. Use a `static_cast` to a forwarding reference
      instead.
  * Do not prefix 'getters' and 'setters' with `get_` and `set_`
+ * Getting the underlying value of a vocabulary type or wrapper should only
+     be named `get` if:
+     * It is required by the standard
+     * It is placed into the `detail::` namespace as a non-publicly accessible
+         API.
 
 (NOTE: More will be added above as time goes on, however clang-tidy and
 clang-format cannot always be used, so following them is less important than
