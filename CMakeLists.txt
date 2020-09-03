@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 include(FetchContent)
-FetchContent_Declare(cmake GIT_REPOSITORY https://github.com/netlify/cmake)
+FetchContent_Declare(cmake GIT_REPOSITORY https://github.com/netlify/cmake GIT_TAG main)
 FetchContent_MakeAvailable(cmake)
 set(CMAKE_PROJECT_INCLUDE ${NETLIFY_PROJECT_PRELUDE})
 # TODO: Look into using IXM at some point once it's stable :)
