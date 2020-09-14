@@ -84,7 +84,7 @@ namespace apex::mixin {
  * do not follow RAII. This applies to both C and C++ APIs
  */
 template <class T, detail::handle_storage Storage>
-struct handle {
+struct [[deprecated("Please use apex::mixin::resource instead")]] handle {
   using storage_type = Storage;
   using pointer = detail::pointer_type_of_t<remove_cvref_t<storage_type>>;
   using handle_type = handle;
