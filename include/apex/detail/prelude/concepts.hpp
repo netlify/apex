@@ -172,6 +172,14 @@ template <class T>
 concept safely_move_constructible = move_constructible<T>
   and ::std::is_nothrow_move_constructible_v<T>;
 
+template <class T>
+concept safely_copy_assignable = safely_copy_constructible<T>
+  and ::std::is_nothrow_copy_assignable_v<T>;
+
+template <class T>
+concept safely_move_assignable = safely_move_constructible<T>
+  and ::std::is_nothrow_move_assignable_v<T>;
+
 /* These are defined in P2199, but there's an issue regarding subsumption that
  * needs to be resolved. There's no guarantee that we'll get it right because
  * the definition of same_as might need to be redefined as a result :/

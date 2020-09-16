@@ -114,6 +114,12 @@ concept invocable = requires (F&& f, Args&&... args) {
 };
 
 template <class F, class... Args>
+concept safely_invocable = invocable<F, Args...>
+ and requires (F&& f, Args&&... args) {
+    { ::std::invoke(static_cast<F&&>(f), static_cast<Args&&>(args)...) } noexcept;
+  };
+
+template <class F, class... Args>
 concept regular_invocable = invocable<F, Args...>;
 
 template <class F, class... Args>
@@ -186,6 +192,9 @@ concept complete_type = requires {
 };
 template <class T>
 concept incomplete_type = requires { requires not complete_type<T>; };
+
+template <class T, template <class...> class U>
+concept specialization_of = is_specialization_of_v<T, U>;
 
 // If a type meets this, it is memcpy-able. We can use this for our bit_cast
 // implementation.
