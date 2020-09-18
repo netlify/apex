@@ -52,6 +52,9 @@ struct either final : private detail::either::base<A, B> {
   using base_type::index;
   using base_type::base_type;
 
+  // using base_type::try_emplace
+  // using base_type::emplace;
+
   constexpr either (either const&) noexcept(safely_copy_constructible<base_type>) = default;
   constexpr either (either&&) noexcept(safely_move_constructible<base_type>) = default;
   constexpr either () = delete;
@@ -158,12 +161,12 @@ struct either final : private detail::either::base<A, B> {
     if (this->has_other()) { return static_cast<other_type&&>(this->assume_other()); }
     return static_cast<other_type>(static_cast<U&&>(default_value));
   }
-
 };
 
 template <class A, class B, class C, class D>
 constexpr bool operator == (either<A, B> const& lhs, either<C, D> const& rhs)
-noexcept(noexcept(lhs.assume_value() == rhs.assume_value()) and noexcept(lhs.assume_other() == rhs.assume_other())) {
+noexcept(noexcept(lhs.assume_value() == rhs.assume_value())
+    and noexcept(lhs.assume_other() == rhs.assume_other())) {
   if (lhs.has_value() and rhs.has_value()) { return lhs.assume_value() == rhs.assume_value(); }
   if (lhs.has_other() and rhs.has_other()) { return lhs.assume_other() == rhs.assume_other(); }
   return false;
