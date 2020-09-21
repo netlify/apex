@@ -460,7 +460,6 @@ extern template struct optional<char>;
 extern template struct optional<double>;
 extern template struct optional<float>;
 
-
 //template <class T, std::three_way_comparable_with<T> U>
 //constexpr std::compare_three_way_result_t<T, U>
 //operator <=> (optional<T> const& lhs, optional<U> const& rhs) noexcept(noexcept(*lhs <=> *rhs)) {
