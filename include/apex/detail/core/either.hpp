@@ -261,20 +261,20 @@ protected:
 
   template <class T> requires safely_constructible_from<A, T>
   void assign_value_with (T&& value) noexcept {
-    this->clear_value();
+    this->clear();
     this->construct_value(static_cast<T&&>(value));
   }
 
   template <class T> requires safely_constructible_from<B, T>
   void assign_other_with (T&& value) noexcept {
-    this->clear_other();
+    this->clear();
     this->construct_other(static_cast<T&&>(value));
   }
 
   template <class T> requires (not safely_constructible_from<A, T>)
   void assign_value_with (T&& value) noexcept(false) {
     auto backup = static_cast<operations_base&&>(*this).assume_other();
-    this->clear_other();
+    this->clear();
     try { this->construct_value(static_cast<T&&>(value)); }
     catch (...) {
       this->assume_other() = static_cast<B&&>(backup);
@@ -285,12 +285,33 @@ protected:
   template <class T> requires (not safely_constructible_from<B, T>)
   void assign_other_with (T&& value) noexcept(false) {
     auto backup = static_cast<operations_base&&>(*this).assume_other();
-    this->clear_value();
+    this->clear();
     try { this->construct_other(static_cast<T&&>(value)); }
     catch (...) {
       this->assume_value() = static_cast<A&&>(backup);
       throw;
     }
+  }
+};
+
+template <class A, class B>
+struct emplacement_base : operations_base<A, B> {
+  using value_type = A;
+  using other_type = B;
+
+  template <class... Args> requires constructible_from<value_type, Args...>
+  [[nodiscard]] value_type& try_emplace (::std::in_place_index_t<0>, Args&&... args)
+  noexcept(safely_constructible_from<value_type, Args...>) {
+    if (this->has_value()) { return this->assume_value(); }
+    return this->emplace(::std::in_place_index<0>, static_cast<Args&&>(args)...);
+  }
+
+  template <class... Args> requires constructible_from<value_type, Args...>
+  [[nodiscard]] value_type& emplace (::std::in_place_index_t<0>, Args&&... args)
+  noexcept(safely_constructible_from<value_type, Args...>) {
+    this->clear();
+    base_type::construct_value(static_cast<Args>(args)...);
+    return this->assume_value();
   }
 };
 
