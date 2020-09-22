@@ -6,8 +6,8 @@ namespace apex::sqlite {
 struct value;
 
 struct context final {
-  using handle_type = view_ptr<sqlite3_context>;
-  using pointer = handle_type::pointer;
+  using resource_type = view_ptr<sqlite3_context>;
+  using pointer = resource_type::pointer;
   using iterator = value*;
 
   context (pointer, ptrdiff_t, sqlite3_value**) noexcept(false);
@@ -35,7 +35,7 @@ struct context final {
   void* user () const noexcept;
 
 private:
-  handle_type handle;
+  resource_type handle;
 };
 
 } /* namespace apex::sqlite */

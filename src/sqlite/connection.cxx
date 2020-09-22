@@ -13,9 +13,9 @@ void default_delete<sqlite3>::operator () (sqlite3* ptr) noexcept {
 }
 
 //connection::connection (::std::filesystem::path const& path) noexcept(false) :
-//  handle_type { }
+//  resource_type { }
 //{
-//  sqlite3_open_v2(path.c_str(), out_ptr(static_cast<handle_type&>(*this)), SQLITE_OPEN_READONLY, nullptr);
+//  sqlite3_open_v2(path.c_str(), out_ptr(static_cast<resource_type&>(*this)), SQLITE_OPEN_READONLY, nullptr);
 //  throw ::std::runtime_error("Not yet implemented");
 //}
 

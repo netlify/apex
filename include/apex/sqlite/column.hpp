@@ -14,8 +14,8 @@ struct value;
 
 // TODO: add mixin::iterator<column>
 struct column final : private view_handle<sqlite3_stmt> {
-  using handle_type::handle_type;
-  using handle_type::get;
+  using resource_type::resource_type;
+  using resource_type::get;
 
   column () = delete;
 

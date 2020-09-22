@@ -15,8 +15,8 @@ struct column;
 // TODO: make a parameter type so we can differentiate between
 // unprotected/protected sqlite3_value's
 struct value final {
-  using handle_type = view_ptr<sqlite3_value>;
-  using pointer = handle_type::pointer;
+  using resource_type = view_ptr<sqlite3_value>;
+  using pointer = resource_type::pointer;
 
   explicit value (column const&) noexcept;
   explicit value (pointer) noexcept;
@@ -45,7 +45,7 @@ struct value final {
   bool operator < (value const&) noexcept;
 
 private:
-  handle_type handle;
+  resource_type handle;
 };
 
 } /* namespace apex::sqlite */

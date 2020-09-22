@@ -26,7 +26,7 @@ using aggregate_t = auto (*)(context&, aggregated) -> void;
 using function_t = auto (*)(context&) -> void;
 
 struct connection : protected unique_handle<sqlite3> {
-  using handle_type::get;
+  using resource_type::get;
 
   // TODO: remove this once outcome<connection, std::error_code> is available
   connection (::std::filesystem::path const&) noexcept(false);

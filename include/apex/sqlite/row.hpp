@@ -13,8 +13,8 @@ namespace apex::sqlite {
 struct statement;
 
 struct row final /*: private mixin::iterator<row>*/ {
-  using handle_type = view_ptr<sqlite3_stmt>;
-  using pointer = handle_type::pointer;
+  using resource_type = view_ptr<sqlite3_stmt>;
+  using pointer = resource_type::pointer;
 
   explicit row (statement const&) noexcept;
 
@@ -30,7 +30,7 @@ struct row final /*: private mixin::iterator<row>*/ {
   void advance (ptrdiff_t) noexcept;
 
 private:
-  handle_type handle;
+  resource_type handle;
   i64 count;
 };
 

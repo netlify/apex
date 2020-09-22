@@ -20,11 +20,11 @@ struct value;
 // TODO: use apex::mixin::handle. This will reduce implementation work needed
 // TODO: add a sqlite_deleter for these APIs
 struct statement {
-  using handle_type = std::unique_ptr<
+  using resource_type = std::unique_ptr<
     sqlite3_stmt,
     std::add_lvalue_reference_t<int(sqlite3_stmt*)>
   >;
-  using pointer = handle_type::pointer;
+  using pointer = resource_type::pointer;
   using iterator = row;
 
   statement ();
@@ -56,7 +56,7 @@ private:
     return iterable<iterator> { std::begin(*this), std::end(*this) };
   }
 
-  handle_type handle;
+  resource_type handle;
 };
 
 void bind (statement const&, ptrdiff_t, span<byte const>) noexcept(false);

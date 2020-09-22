@@ -7,8 +7,8 @@ namespace apex::sqlite {
 
 // TODO: use a default_delete from within apex
 struct blob final {
-  using handle_type = std::unique_ptr<sqlite3_blob>;
-  using pointer = handle_type::pointer;
+  using resource_type = std::unique_ptr<sqlite3_blob>;
+  using pointer = resource_type::pointer;
 
   static blob extend (column const&) noexcept(false);
   static blob open (column const&) noexcept(false);
@@ -25,7 +25,7 @@ struct blob final {
   i64 tell ();
   i64 size () const noexcept(false);
 private:
-  handle_type handle;
+  resource_type handle;
 };
 
 } /* namespace apex::sqlite */

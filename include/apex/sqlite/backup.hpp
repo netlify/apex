@@ -13,8 +13,8 @@ namespace apex::sqlite {
 struct connection;
 
 struct backup final /*: private mixin::iterator<backup>*/ {
-  using handle_type = std::shared_ptr<sqlite3_backup>;
-  using pointer = handle_type::element_type*;
+  using resource_type = std::shared_ptr<sqlite3_backup>;
+  using pointer = resource_type::element_type*;
 
   backup (connection&, std::string_view, connection const&, std::string_view) noexcept(false);
   backup () = delete;
@@ -37,7 +37,7 @@ struct backup final /*: private mixin::iterator<backup>*/ {
   ptrdiff_t total () const noexcept;
 
 private:
-  handle_type handle;
+  resource_type handle;
 };
 
 } /* namespace apex::sqlite */
