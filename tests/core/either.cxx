@@ -44,3 +44,17 @@ TEST_CASE("move-constructor") {
   CHECK(move.index() == 0);
   CHECK(move.assume_value() == 4);
 }
+
+TEST_CASE("non-trivial-destructor") {
+  struct test {
+    test(std::string& reference) noexcept : reference(reference) { }
+    ~test() { this->reference.clear(); }
+    std::string& reference;
+  };
+  std::string hello { "hello, world" };
+  {
+    apex::either<test, int> test { std::in_place_index<0>, hello };
+    CHECK(std::addressof(test.value().reference) == std::addressof(hello));
+  }
+  CHECK(hello.empty());
+}

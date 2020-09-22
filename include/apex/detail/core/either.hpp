@@ -310,7 +310,28 @@ struct emplacement_base : operations_base<A, B> {
   [[nodiscard]] value_type& emplace (::std::in_place_index_t<0>, Args&&... args)
   noexcept(safely_constructible_from<value_type, Args...>) {
     this->clear();
-    base_type::construct_value(static_cast<Args>(args)...);
+    operations_base<A, B>::construct_value(static_cast<Args&&>(args)...);
+    return this->assume_value();
+  }
+};
+
+template <class A, different_from<A> B>
+struct emplacement_base<A, B> : operations_base<A, B> {
+  using value_type = A;
+  using other_type = B;
+
+  template <class... Args> requires constructible_from<value_type, Args...>
+  [[nodiscard]] value_type& try_emplace (::std::in_place_type_t<value_type>, Args&&... args)
+  noexcept(safely_constructible_from<value_type, Args...>) {
+    if (this->has_value()) { return this->assume_value(); }
+    return this->emplace(::std::in_place_type<value_type>, static_cast<Args&&>(args)...);
+  }
+
+  template <class... Args> requires constructible_from<value_type, Args...>
+  [[nodiscard]] value_type& emplace (::std::in_place_type_t<value_type>, Args&&... args)
+  noexcept(safely_constructible_from<value_type, Args...>) {
+    this->clear();
+    operations_base<A, B>::construct_value(static_cast<Args&&>(args)...);
     return this->assume_value();
   }
 };
