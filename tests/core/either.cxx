@@ -45,6 +45,13 @@ TEST_CASE("move-constructor") {
   CHECK(move.assume_value() == 4);
 }
 
+TEST_CASE("copy-assignment") {
+  apex::either<std::string, std::string> a { std::in_place_index<0>, "Hello" };
+  apex::either<std::string, std::string> b { std::in_place_index<1>, "World" };
+  a = b;
+  CHECK(a == b);
+}
+
 TEST_CASE("non-trivial-destructor") {
   struct test {
     test(std::string& reference) noexcept : reference(reference) { }

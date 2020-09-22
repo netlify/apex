@@ -163,20 +163,32 @@ struct either final : private detail::either::base<A, B> {
   }
 };
 
-template <class A, class B, class C, class D>
-constexpr bool operator == (either<A, B> const& lhs, either<C, D> const& rhs)
+template <class A, class B>
+constexpr bool operator == (either<A, B> const& lhs, either<A, B> const& rhs)
 noexcept(noexcept(lhs.assume_value() == rhs.assume_value())
-    and noexcept(lhs.assume_other() == rhs.assume_other())) {
+  and noexcept(lhs.assume_other() == rhs.assume_other())) {
   if (lhs.has_value() and rhs.has_value()) { return lhs.assume_value() == rhs.assume_value(); }
   if (lhs.has_other() and rhs.has_other()) { return lhs.assume_other() == rhs.assume_other(); }
   return false;
 }
 
-template <class A, class B, class C, class D>
-constexpr bool operator != (either<A, B> const& lhs, either<C, D> const& rhs)
+template <class A, class B>
+constexpr bool operator != (either<A, B> const& lhs, either<A, B> const& rhs)
 noexcept(noexcept(not (lhs == rhs))) {
   return not (lhs == rhs);
 }
+
+//template <class A, class B, class C, class D>
+//constexpr bool operator == (either<A, B> const& lhs, either<C, D> const& rhs)
+//noexcept(noexcept(lhs.assume_value() == rhs.assume_value())
+//    and noexcept(lhs.assume_other() == rhs.assume_other())) {
+// }
+//
+//template <class A, class B, class C, class D>
+//constexpr bool operator != (either<A, B> const& lhs, either<C, D> const& rhs)
+//noexcept(noexcept(not (lhs == rhs))) {
+//  return not (lhs == rhs);
+//}
 
 } /* namespace apex */
 
