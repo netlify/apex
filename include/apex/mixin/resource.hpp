@@ -52,9 +52,9 @@ concept resource_handle = requires (T object) {
   requires swappable<T>;
   requires movable<T>;
 
-  typename detail::mixin::resource::pointer_of_t<T>;
+  typename apex::detail::mixin::resource::pointer_of_t<T>;
 
-  { object.get() } noexcept -> same_as<detail::mixin::resource::pointer_of<T>>;
+  { object.get() } noexcept -> same_as<apex::detail::mixin::resource::pointer_of_t<T>>;
   object.operator->();
   static_cast<bool>(object);
   object.reset(object.get());
@@ -81,7 +81,7 @@ concept resource_handle = requires (T object) {
 template <class T, resource_handle Storage>
 struct resource {
   using storage_type = Storage;
-  using pointer = detail::mixin::resource::pointer_of_t<remove_cvref_t<storage_type>>;
+  using pointer = apex::detail::mixin::resource::pointer_of_t<remove_cvref_t<storage_type>>;
   using resource_type = resource;
 
   template <class... Args> requires constructible_from<storage_type, pointer, Args...>
@@ -98,18 +98,18 @@ struct resource {
   explicit operator bool () const noexcept { return static_cast<bool>(this->storage); }
   decltype(auto) get () const noexcept { return this->storage.get(); }
 
-  template <class... Args> requires detail::mixin::resource::resettable<storage_type, pointer, Args...>
+  template <class... Args> requires apex::detail::mixin::resource::resettable<storage_type, pointer, Args...>
   void reset (pointer ptr, Args&&... args) noexcept {
     this->storage.reset(ptr, static_cast<Args&&>(args)...);
   }
 
   void reset () noexcept { this->storage.reset(); }
 
-  pointer release () noexcept requires detail::mixin::resource::releasable<storage_type> {
+  pointer release () noexcept requires apex::detail::mixin::resource::releasable<storage_type> {
     return this->storage.release();
   }
 
-  friend swap (resource& lhs, resource& rhs)
+  friend void swap (resource& lhs, resource& rhs)
   noexcept(noexcept(::apex::ranges::swap(lhs.storage, rhs.storage))) {
     ::apex::ranges::swap(lhs.storage, rhs.storage);
   }
