@@ -24,6 +24,9 @@ using view_handle = mixin::resource<
 template <class T, class D=default_delete<T>>
 using unique_handle = mixin::resource<T, ::std::unique_ptr<T, D>>;
 
+template <class T>
+using shared_handle = mixin::resource<T, ::std::shared_ptr<T>>;
+
 } /* namespace apex::sqlite */
 
 #endif /* APEX_SQLITE_MEMORY_HPP */

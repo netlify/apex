@@ -16,7 +16,7 @@ template <class> struct pointer_of;
 
 template <element_type T>
 struct pointer_of<T> :
-  ::std::add_pointer_t<typename T::element_type>
+  ::std::add_pointer<typename T::element_type>
 { };
 
 template <pointer T>
@@ -52,9 +52,9 @@ concept resource_handle = requires (T object) {
   requires swappable<T>;
   requires movable<T>;
 
-  typename apex::detail::mixin::resource::pointer_of_t<T>;
+//  typename apex::detail::mixin::resource::pointer_of_t<T>;
 
-  { object.get() } noexcept -> same_as<apex::detail::mixin::resource::pointer_of_t<T>>;
+  { object.get() } noexcept -> same_as<typename apex::detail::mixin::resource::pointer_of<T>::type>;
   object.operator->();
   static_cast<bool>(object);
   object.reset(object.get());
