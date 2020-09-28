@@ -8,7 +8,7 @@
 
 // gotta love writing shims for features we don't have :(
 #if not APEX_CHECK_API(integer_comparison_functions, 202002)
-namespace apex::impl {
+namespace apex::detail {
 
 template <class T>
 concept cmp_integer = integral<T>
@@ -18,7 +18,7 @@ concept cmp_integer = integral<T>
     requires different_from<bool, T>;
   };
 
-} /* namespace apex::impl */
+} /* namespace apex::detail */
 #endif /* not APEX_CHECK_API(integer_comparison_functions, 202002) */
 
 namespace apex {
