@@ -9,7 +9,7 @@
 #include <tuple>
 // IWYU pragma: end_exports
 
-namespace apex::impl {
+namespace apex::detail {
 
 template <class F, class... Ts>
 struct bind_front final {
@@ -72,7 +72,7 @@ private:
   std::decay_t<F> function;
 };
 
-} /* namespace apex::impl */
+} /* namespace apex::detail */
 
 namespace apex {
 
@@ -82,7 +82,7 @@ constexpr auto bind_front (F&& f, Args&&... args) {
   static_assert((std::is_constructible_v<std::decay_t<Args>, Args> and ...));
   static_assert(std::is_move_constructible_v<std::decay_t<F>>);
   static_assert(std::is_constructible_v<std::decay_t<F>, F>);
-  return apex::impl::bind_front<F, Args...>(std::forward<F>(f), std::forward<Args>(args)...);
+  return apex::detail::bind_front<F, Args...>(std::forward<F>(f), std::forward<Args>(args)...);
 }
 
 template <class> struct function_ref;

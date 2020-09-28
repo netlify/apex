@@ -7,7 +7,7 @@
 #include <exception>
 #include <limits>
 
-namespace apex::impl {
+namespace apex::detail {
 
 struct scope_exit_policy {
   void release () noexcept { this->execute = false; }
@@ -37,7 +37,7 @@ private:
   int errors { };
 };
 
-} /* namespace apex::impl */
+} /* namespace apex::detail */
 
 namespace apex {
 
@@ -70,17 +70,17 @@ private:
 
 template <class Fn>
 struct [[nodiscard]] scope_failure final :
-  basic_scope_exit<Fn, impl::scope_failure_policy>
+  basic_scope_exit<Fn, detail::scope_failure_policy>
 { };
 
 template <class Fn>
 struct [[nodiscard]] scope_success final :
-  basic_scope_exit<Fn, impl::scope_success_policy>
+  basic_scope_exit<Fn, detail::scope_success_policy>
 { };
 
 template <class Fn>
 struct [[nodiscard]] scope_exit final :
-  basic_scope_exit<Fn, impl::scope_exit_policy>
+  basic_scope_exit<Fn, detail::scope_exit_policy>
 { };
 
 template <class Fn> scope_failure (Fn&&) -> scope_failure<Fn>;
