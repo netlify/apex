@@ -1,0 +1,54 @@
+name: Build and Test
+on: push
+jobs:
+  build:
+    name: Build Apex
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: true
+      matrix:
+        build-type: [Debug, Release]
+        sanitizer: [ASAN, UBSAN]
+        include:
+          - build-type: Debug
+            collect-coverage: true
+    env:
+      CMAKE_GENERATOR: Ninja
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Update Package Index
+        run: sudo apt-get update
+      - name: Install CMake + NInja
+        run: sudo apt-get install --yes ninja-build cmake
+      - name: clang-tidy-10 workaround
+        run: sudo apt-get remove libllvm10
+      - name: Install Toolchain
+        run: >
+          sudo apt-get install --yes
+          clang-format-10
+          clang-tools-10
+          clang-tidy-10
+          libc++-10-dev
+          clang-10
+          llvm-10
+          lld-10
+      - name: Install Dependencies
+        run: sudo apt-get install --yes libssl-dev
+      - name: Configure Project
+        run: >
+          cmake -B${{github.workspace}}/build -S${{github.workspace}}
+          -DCMAKE_BUILD_TYPE=${{matrix.build-type}}
+          -DAPEX_WITH_${{matrix.sanitizer}}=YES
+      - name: Build Project
+        run: cmake --build build
+      - name: Run Unit Tests
+        run: cmake --build build --target test
+        env:
+          CTEST_OUTPUT_ON_FAILURE=1
+      #- name: Upload Code Coverage
+      #  uses: codecov/codecov-action@v1
+      #  if: matrix.collect-coverage
+      #  with:
+      #    fail_ci_if_error: true
+      #    flags: unit tests
