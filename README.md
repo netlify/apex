@@ -1,3 +1,5 @@
+![Build and Test](https://github.com/netlify/apex/workflows/Build%20and%20Test/badge.svg)
+
 # Overview
 
 Apex is Netlify's Core C++ library. In addition to providing shims for upcoming
