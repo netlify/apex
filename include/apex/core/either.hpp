@@ -8,10 +8,9 @@ namespace apex {
 template <class> struct bad_either_access;
 
 /* TODO: Support storing a backtrace of some kind... this might require our own base exception type */
-// TODO: Place implementation of constructor into a .cxx file :v
 template <>
 struct bad_either_access<void> : ::std::exception {
-  explicit bad_either_access () noexcept;
+  explicit bad_either_access () noexcept = default;
 };
 
 template <class T>

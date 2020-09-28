@@ -65,7 +65,7 @@ ptrdiff_t offset_to (T const& member) noexcept {
   using std::cmp_less;
   using std::in_range;
 #else
-template <class T, class U> requires impl::cmp_integer<T>
+template <class T, class U> requires detail::cmp_integer<T>
 constexpr bool cmp_equal (T t, U u) noexcept {
   if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) { return t == u; }
   else if constexpr (std::is_signed_v<T>) {
@@ -78,7 +78,7 @@ constexpr bool cmp_equal (T t, U u) noexcept {
 template <class T, class U>
 constexpr bool cmp_not_equal(T t, U u) noexcept { return not cmp_equal(t, u); }
 
-template <class T, class U> requires impl::cmp_integer<T>
+template <class T, class U> requires detail::cmp_integer<T>
 constexpr bool cmp_less (T t, U u) noexcept {
   if constexpr (std::is_signed_v<T> == std::is_signed_v<U>) {
     return t < u;

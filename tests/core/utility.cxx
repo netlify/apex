@@ -11,10 +11,10 @@ TEST_CASE("to_underlying") {
 }
 
 TEST_CASE("offset_to") {
-  struct X {
-    int x;
+  struct x {
+    int y;
   };
-  REQUIRE(apex::offset_to(&X::x) == 0);
+  REQUIRE(apex::offset_to(&x::y) == 0);
 }
 
 TEST_CASE("overloaded") {
