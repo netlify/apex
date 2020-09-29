@@ -65,3 +65,24 @@ TEST_CASE("non-trivial-destructor") {
   }
   CHECK(hello.empty());
 }
+
+TEST_CASE("reference-on-left") {
+  int value = 4;
+  apex::either<int&, float> either { std::in_place_index<0>, value };
+  CHECK(either.has_value());
+  CHECK(either.assume_value() == value);
+}
+
+TEST_CASE("reference-on-right") {
+  int value = 4;
+  apex::either<float, int&> either { std::in_place_index<1>, value };
+  CHECK(either.has_other());
+  CHECK(either.assume_other() == value);
+}
+
+TEST_CASE("reference-for-both") {
+  int value = 4;
+  apex::either<int&, int&> either { std::in_place_index<1>, value };
+  CHECK(either.has_other());
+  CHECK(either.assume_other() == value);
+}
