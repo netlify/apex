@@ -458,10 +458,10 @@ template <class A, class B>
 struct operations_base : construction_base<A, B> {
   using construction_base<A, B>::construction_base;
 
-  constexpr bool has_value () const noexcept { return this->index() == 0; }
-  constexpr bool has_other () const noexcept { return this->index() == 1; }
+  [[nodiscard]] constexpr bool has_value () const noexcept { return this->index() == 0; }
+  [[nodiscard]] constexpr bool has_other () const noexcept { return this->index() == 1; }
 
-  constexpr int index () const noexcept { return this->which; }
+  [[nodiscard]] constexpr int index () const noexcept { return this->which; }
 
 protected:
   template <class... Args> requires constructible_from<A, Args...>
