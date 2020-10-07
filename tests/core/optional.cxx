@@ -91,11 +91,29 @@ TEST_CASE("move-value-assignment") {
   CHECK(*opt == "move-value");
 }
 
+TEST_CASE("star-operator") {
+  apex::optional<int> opt { 42 };
+  using const_rvalue_type = decltype(*static_cast<apex::optional<int> const&&>(opt));
+  using const_lvalue_type = decltype(*static_cast<apex::optional<int> const&>(opt));
+  using rvalue_type = decltype(*static_cast<apex::optional<int>&&>(opt));
+  using lvalue_type = decltype(*static_cast<apex::optional<int>&>(opt));
+
+  STATIC_REQUIRE(apex::same_as<const_rvalue_type, int const&&>);
+  STATIC_REQUIRE(apex::same_as<const_lvalue_type, int const&>);
+  STATIC_REQUIRE(apex::same_as<rvalue_type, int&&>);
+  STATIC_REQUIRE(apex::same_as<lvalue_type, int&>);
+}
 
 TEST_CASE("arrow-operator") {
   apex::optional<std::string> opt { "arrow" };
   CHECK(opt);
   CHECK_FALSE(opt->empty());
+}
+
+TEST_CASE("const-rvalue-value-access") {
+  apex::optional<int> opt { 42 };
+  using return_type = decltype(static_cast<apex::optional<int> const&&>(opt).value());
+  STATIC_REQUIRE(apex::same_as<return_type, int const&&>);
 }
 
 TEST_CASE("try-emplace") {
@@ -107,9 +125,17 @@ TEST_CASE("try-emplace") {
 TEST_CASE("emplace") {
   apex::optional<int> x { };
   CHECK_FALSE(x);
-  x.emplace(42);
+  apex::ignore = x.emplace(42);
   CHECK(x);
   CHECK(x == 42);
+}
+
+TEST_CASE("and-then") {
+  apex::optional<int> const lhs { 42 };
+  auto result = lhs.and_then([] (auto const& value) {
+    return apex::optional<int>(value * 2);
+  });
+  CHECK((*lhs * 2) == *result);
 }
 
 TEST_CASE("equal-to") {

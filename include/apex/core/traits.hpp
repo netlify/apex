@@ -161,7 +161,7 @@ template <template <class...> class T, class... Args>
 struct is_specialization_of<T<Args...>, T> : std::true_type { };
 
 template <class T, template <class...> class U>
-inline constexpr auto is_specialization_of_v = is_specialization_of<T, U> { };
+inline constexpr bool is_specialization_of_v = is_specialization_of<T, U> { };
 
 template <class, template <class, size_t> class>
 struct is_bounded_specialization_of : std::false_type { };
