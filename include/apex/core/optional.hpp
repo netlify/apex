@@ -44,6 +44,8 @@ struct optional<T> final : private detail::optional::base<T> {
   using value_type = T;
   using base_type = detail::optional::base<T>;
 
+  using base_type::base_type;
+
   using base_type::operator bool;
   using base_type::operator *;
 
@@ -55,38 +57,29 @@ struct optional<T> final : private detail::optional::base<T> {
   using base_type::value_or;
   using base_type::value;
 
+  using base_type::transform_or;
   using base_type::transform;
   using base_type::and_then;
 
-  template <class F, class U>
-  using transform_type = optional<::std::invoke_result_t<F, U>>;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) optional (::std::in_place_t, Args&&... args)
-  noexcept(::std::is_nothrow_constructible_v<value_type, Args...>) :
-    base_type(::std::in_place, static_cast<Args&&>(args)...)
-  { }
-
   template <class U=value_type>
-  requires different_from<optional, U> and ::std::is_constructible_v<value_type, U>
-  constexpr explicit(not ::std::is_convertible_v<U, value_type>) optional (U&& value)
-    noexcept(::std::is_nothrow_constructible_v<value_type, U>) :
-    optional { std::in_place, static_cast<U&&>(value) }
+  requires different_from<optional, U> and constructible_from<value_type, U>
+  constexpr explicit(not convertible_to<U, value_type>) optional (U&& value)
+    noexcept(safely_constructible_from<value_type, U>) :
+    optional { ::std::in_place, static_cast<U&&>(value) }
   { }
 
   constexpr optional (::std::nullopt_t) noexcept :
     optional { }
   { }
 
-  constexpr optional (optional const&) = default;
-  constexpr optional (optional&&) = default;
-  constexpr optional () noexcept = default;
-
   template <class U=value_type>
   requires different_from<optional, U>
-  and ::std::is_constructible_v<value_type, U>
-  and ::std::is_assignable_v<value_type, U>
-  optional& operator = (U&& value) noexcept {
+  and constructible_from<value_type, U>
+  and assignable_from<value_type&, U>
+  and (not ::std::is_lvalue_reference_v<value_type>)
+  optional& operator = (U&& value)
+  noexcept(safely_constructible_from<value_type, U>
+    and safely_assignable_from<value_type, U>) {
     if (*this) { **this = static_cast<U&&>(value); }
     else { this->construct(static_cast<U&&>(value)); }
     return *this;
@@ -97,191 +90,89 @@ struct optional<T> final : private detail::optional::base<T> {
     return *this;
   }
 
-  optional& operator = (optional const&) = default;
-  optional& operator = (optional&&) = default;
-
-  friend void swap (optional& lhs, optional& rhs) noexcept(noexcept(apex::ranges::swap(lhs, rhs))) {
-    if (not lhs and not rhs) { return; }
-    if (lhs and rhs) { return apex::ranges::swap(*lhs, *rhs); }
-    auto& uninitialized = lhs ? rhs : lhs;
-    auto& initialized = lhs ? lhs : rhs;
-    uninitialized = static_cast<xvalue_of<value_type>>(lhs);
-    initialized = ::std::nullopt;
+  friend void swap (optional& lhs, optional& rhs) noexcept(noexcept(apex::ranges::swap(*lhs, *rhs))) {
+    if constexpr (::std::is_lvalue_reference_v<value_type>) {
+      apex::ranges::swap(lhs.storage, rhs.storage);
+    } else {
+      if (not lhs and not rhs) { return; }
+      if (lhs and rhs) { return apex::ranges::swap(*lhs, *rhs); }
+      auto& uninitialized = lhs ? rhs : lhs;
+      auto& initialized = lhs ? lhs : rhs;
+      uninitialized = static_cast<optional&&>(lhs);
+      initialized = ::std::nullopt;
+    }
   }
 
   auto operator -> () const noexcept { return ::std::addressof(**this); }
   auto operator -> () noexcept { return ::std::addressof(**this); }
 
-  template <invocable F>
-  constexpr optional or_else (F&& f) const&& noexcept(::std::is_nothrow_invocable_v<F>) {
-    if (*this) { return std::move(*this); }
-    return this->otherwise(static_cast<F&&>(f));
+  constexpr optional or_else (invocable auto&& f) const&& noexcept(safely_invocable<decltype(f)>) {
+    if (*this) {
+      if constexpr (::std::is_lvalue_reference_v<value_type>) { return *this; }
+      else { return static_cast<optional const&&>(*this); }
+    }
+    return this->otherwise(static_cast<decltype(f)>(f));
   }
 
-  template <invocable F>
-  constexpr optional or_else (F&& f) const& noexcept(::std::is_nothrow_invocable_v<F>) {
+  constexpr optional or_else (invocable auto&& f) const& noexcept(safely_invocable<decltype(f)>) {
     if (*this) { return *this; }
-    return this->otherwise(static_cast<F&&>(f));
+    return this->otherwise(static_cast<decltype(f)>(f));
   }
 
-  template <invocable F>
-  constexpr optional or_else (F&& f) && noexcept(::std::is_nothrow_invocable_v<F>) {
-    if (*this) { return std::move(*this); }
-    return this->otherwise(static_cast<F&&>(f));
+  constexpr optional or_else (invocable auto&& f) && noexcept(safely_invocable<decltype(f)>) {
+    if (*this) {
+      if constexpr (::std::is_lvalue_reference_v<value_type>) { return *this; }
+      else { return static_cast<optional&&>(*this); }
+    }
+    return this->otherwise(static_cast<decltype(f)>(f));
   }
 
-  template <invocable F>
-  constexpr optional or_else (F&& f) & noexcept(::std::is_nothrow_invocable_v<F>) {
+  constexpr optional or_else (invocable auto&& f) & noexcept(safely_invocable<decltype(f)>) {
     if (*this) { return *this; }
-    return this->otherwise(static_cast<F&&>(f));
+    return this->otherwise(static_cast<decltype(f)>(f));
   }
+
 private:
   template <invocable F>
   constexpr optional otherwise (F&& f) const noexcept {
-    if constexpr (not is_void_v<::std::invoke_result_t<F>>) {
+    if constexpr (not ::std::is_void_v<::std::invoke_result_t<F>>) {
       return optional { ::std::invoke(static_cast<F&&>(f)) };
     } else {
       ::std::invoke(static_cast<F&&>(f));
       return ::std::nullopt;
     }
   }
+
+  //template <invocable F, class U>
+  //constexpr transform_type<F, U> transform_otherwise (F&& f) noexcept(safely_invocable<F>) {
+  //  if constexpr (not ::std::is_void_v<::std::invoke_result_t<F>>) {
+  //    return transform_type<F, U> { ::std::invoke(static_cast<F&&>(f)) };
+  //  } else {
+  //    ::std::invoke(static_cast<F&&>(f));
+  //    return ::std::nullopt;
+  //  }
+  //}
 };
 
-template <class T>
-struct optional<T&> final : private detail::optional::base<T&> {
-  using base_type = detail::optional::base<T&>;
-  using value_type = T&;
+//private:
+  //template <class F>
+  //static constexpr auto is_nothrow_otherwise = requires {
+  //  requires ::std::is_nothrow_invocable_v<F>;
+  //  requires ::std::is_void_v<::std::invoke_result_t<F>>
+  //    or ::std::is_nothrow_constructible_v<optional, ::std::invoke_result_t<F>>;
+  //};
 
-  using base_type::operator bool;
-  using base_type::operator *;
+  //template <invocable F>
+  //constexpr optional otherwise (F&& f) noexcept(is_nothrow_otherwise<F>) {
+  //  if constexpr (not ::std::is_void_v<::std::invoke_result_t<F>>) {
+  //    return optional { ::std::invoke(static_cast<F&&>(f)) };
+  //  } else {
+  //    ::std::invoke(static_cast<F&&>(f));
+  //    return std::nullopt;
+  //  }
+  //}
 
-  using base_type::try_emplace;
-  using base_type::emplace;
-  using base_type::reset;
-
-  using base_type::has_value;
-  using base_type::value_or;
-  using base_type::value;
-
-  using base_type::transform;
-  using base_type::and_then;
-
-  using const_reference = ::std::add_lvalue_reference_t<::std::add_const_t<T>>;
-  using reference = ::std::add_lvalue_reference_t<T>;
-
-  template <class F, class U>
-  using transform_type = optional<::std::invoke_result_t<F, U>>;
-
-  template <class U>
-  static constexpr auto different_reference = requires {
-    requires convertible_to<U, value_type>;
-    requires ::std::is_lvalue_reference_v<U>;
-  };
-
-  template <class F, class DF, class U>
-  static constexpr auto transform_other = ::std::is_void_v<::std::invoke_result_t<DF>>
-    or  convertible_to<::std::invoke_result_t<DF>, typename transform_type<F, U>::value_type>;
-
-  template <class U> requires different_reference<U>
-  constexpr explicit optional (remove_reference_t<U>& ref) noexcept :
-    base_type(::std::in_place, ref)
-  { }
-
-  template <class U> requires convertible_to<add_lvalue_reference_t<U>, value_type>
-  constexpr explicit optional (::std::reference_wrapper<U> ref) noexcept :
-    optional { ref.get() }
-  { }
-
-  constexpr explicit optional (value_type ref) noexcept :
-    base_type(::std::in_place, ref)
-  { }
-
-  constexpr optional (::std::in_place_t, ::std::reference_wrapper<T> ref) noexcept :
-    optional(ref.get())
-  { }
-
-  constexpr optional (::std::in_place_t, value_type ref) noexcept :
-    optional(ref)
-  { }
-
-  constexpr optional (optional const&) noexcept = default;
-  constexpr optional (T&&) = delete;
-  constexpr optional () noexcept = default;
-
-  constexpr optional& operator = (optional const&) noexcept = default;
-  constexpr optional& operator = (std::nullopt_t) noexcept {
-    this->reset();
-    return *this;
-  }
-
-  // TODO: make this a friend function~
-  constexpr void swap (optional& that) noexcept {
-    apex::ranges::swap(this->storage, that.storage);
-  }
-
-  template <invocable F>
-  constexpr optional or_else (F&& f) const
-  noexcept(noexcept(this->otherwise(static_cast<F&&>(f)))) {
-    if (*this) { return *this; }
-    return this->otherwise(static_cast<F&&>(f));
-  }
-
-  template <invocable F>
-  constexpr optional or_else (F&& f) noexcept(noexcept(this->otherwise(static_cast<F&&>(f)))) {
-    if (*this) { return *this; }
-    return this->otherwise(static_cast<F&&>(f));
-  }
-
-  template <invocable<const_reference> F, convertible_to<::std::invoke_result_t<F, const_reference>> U>
-  constexpr transform_type<F, const_reference> transform_or (F&& f, U&& default_value) 
-  noexcept(is_nothrow_invocable_v<F, const_reference>) {
-    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
-    return static_cast<::std::invoke_result_t<F, const_reference>>(static_cast<U&&>(default_value));
-  }
-
-  template <invocable<reference> F, convertible_to<::std::invoke_result_t<F, reference>> U>
-  constexpr transform_type<F, reference> transform_or (F&& f, U&& default_value)
-  noexcept(is_nothrow_invocable_v<F, reference>) {
-    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
-    return static_cast<::std::invoke_result_t<F, reference>>(static_cast<U&&>(default_value));
-  }
-
-  template <invocable<const_reference> F, invocable DF>
-  requires transform_other<F, DF, const_reference>
-  constexpr transform_type<F, const_reference> transform_or_else (F&& f, DF&& df) const
-  noexcept(is_nothrow_invocable_v<F, const_reference> and is_nothrow_invocable_v<DF>) {
-    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
-    return this->transform_otherwise(static_cast<DF&&>(df));
-  }
-
-private:
-  template <class F>
-  static constexpr auto is_nothrow_otherwise = requires {
-    requires ::std::is_nothrow_invocable_v<F>;
-    requires ::std::is_void_v<::std::invoke_result_t<F>>
-      or ::std::is_nothrow_constructible_v<optional, ::std::invoke_result_t<F>>;
-  };
-
-  template <invocable F>
-  constexpr optional otherwise (F&& f) noexcept(is_nothrow_otherwise<F>) {
-    if constexpr (not ::std::is_void_v<::std::invoke_result_t<F>>) {
-      return optional { ::std::invoke(static_cast<F&&>(f)) };
-    } else {
-      ::std::invoke(static_cast<F&&>(f));
-      return std::nullopt;
-    }
-  }
-
-  template <invocable F, class U>
-  constexpr transform_type<F, U> transform_otherwise (F&& f) noexcept(::std::is_nothrow_invocable_v<F>) {
-    if constexpr (not ::std::is_void_v<::std::invoke_result_t<F>>) {
-      return transform_type<F, U> { ::std::invoke(static_cast<F&&>(f)) };
-    } else {
-      ::std::invoke(static_cast<F&&>(f));
-      return ::std::nullopt;
-    }
-  }
-};
+//};
 
 template <class T> optional (::std::reference_wrapper<T>) -> optional<T&>;
 template <class T> optional (T) -> optional<T>;

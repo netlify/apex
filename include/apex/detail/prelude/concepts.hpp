@@ -148,10 +148,10 @@ concept convert_constructible_with = constructible_from<T, U const&&>
 
 template <class T, class U>
 concept convert_assignable_with = convert_constructible_with<T, U>
-  or ::std::is_assignable_v<T&, U const&&>
-  or ::std::is_assignable_v<T&, U const&>
-  or ::std::is_assignable_v<T&, U&&>
-  or ::std::is_assignable_v<T&, U&>;
+  and (assignable_from<T&, U const&&>
+  or assignable_from<T&, U const&>
+  or assignable_from<T&, U&&>
+  or assignable_from<T&, U&>);
 
 template <class T, class U>
 concept nonconvert_constructible_with = not convert_constructible_with<T, U>;
@@ -163,6 +163,10 @@ concept nonconvert_assignable_with = nonconvert_constructible_with<T, U>
 template <class T, class... Args>
 concept safely_constructible_from = constructible_from<T, Args...>
   and ::std::is_nothrow_constructible_v<T, Args...>;
+
+template <class T, class U>
+concept safely_assignable_from = assignable_from<T, U>
+  and ::std::is_nothrow_assignable_v<T, U>;
 
 template <class T>
 concept safely_copy_constructible = copy_constructible<T>
