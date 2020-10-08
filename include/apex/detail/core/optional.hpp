@@ -27,7 +27,7 @@ struct storage_base {
   using value_type = T;
 
   template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr storage_base (::std::in_place_t, Args&&... args)
+  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_t, Args&&... args)
   noexcept(safely_constructible_from<value_type, Args...>) :
     storage(static_cast<Args&&>(args)...),
     valid(true)
@@ -283,6 +283,35 @@ struct monadic_base : operations_base<T> {
     if (not *this) { return ::std::nullopt; }
     return ::std::invoke(static_cast<decltype(f)>(f), **this);
   }
+
+  /* transform_or -- non-abbreviated form is used for readability (seriously) */
+  template <invocable<value_type const&&> F, convertible_to<::std::invoke_result_t<F, value_type const&&>> U>
+  constexpr transform_type<F, value_type const&&> transform_or (U&& default_value, F&& f) const&&
+  noexcept(safely_invocable<F, value_type const&&>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), static_cast<value_type const&&>(**this)); }
+    return static_cast<::std::invoke_result_t<F, value_type const&&>>(static_cast<U&&>(default_value));
+  }
+
+  template <invocable<value_type const&> F, convertible_to<::std::invoke_result_t<F, value_type const&>> U>
+  constexpr transform_type<F, value_type const&&> transform_or (U&& default_value, F&& f) const&
+  noexcept(safely_invocable<F, value_type const&>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), static_cast<value_type const&>(**this)); }
+    return static_cast<::std::invoke_result_t<F, value_type const&&>>(static_cast<U&&>(default_value));
+  }
+
+  template <invocable<value_type&&> F, convertible_to<::std::invoke_result_t<F, value_type&&>> U>
+  constexpr transform_type<F, value_type&&> transform_or (U&& default_value, F&& f) &&
+  noexcept(safely_invocable<F, value_type&&>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), static_cast<value_type&&>(**this)); }
+    return static_cast<::std::invoke_result_t<F, value_type&&>>(static_cast<U&&>(default_value));
+  }
+
+  template <invocable<value_type&> F, convertible_to<::std::invoke_result_t<F, value_type&>> U>
+  constexpr transform_type<F, value_type&> transform_or (U&& default_value, F&& f) &
+  noexcept(safely_invocable<F, value_type&>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
+    return static_cast<::std::invoke_result_t<F, value_type&>>(static_cast<U&&>(default_value));
+  }
 };
 
 template <class T>
@@ -319,6 +348,21 @@ struct monadic_base<T&> : operations_base<T&> {
   noexcept(safely_invocable<decltype(f), const_reference>) -> transform_type<decltype(f), reference> {
     if (not *this) { return ::std::nullopt; }
     return ::std::invoke(static_cast<decltype(f)>(f), **this);
+  }
+
+  /* transform_or -- non-abbreviated form helps with readability (seriously) */
+  template <invocable<const_reference> F, convertible_to<::std::invoke_result_t<F, const_reference>> U>
+  constexpr transform_type<F, const_reference> transform_or (U&& default_value, F&& f) const
+  noexcept(safely_invocable<F, const_reference>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
+    return static_cast<::std::invoke_result_t<F, const_reference&>>(static_cast<U&&>(default_value));
+  }
+
+  template <invocable<reference> F, convertible_to<::std::invoke_result_t<F, reference>> U>
+  constexpr transform_type<F, reference> transform_or (U&& default_value, F&& f)
+  noexcept(safely_invocable<F, reference>) {
+    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
+    return static_cast<::std::invoke_result_t<F, reference>>(static_cast<U&&>(default_value));
   }
 };
 
