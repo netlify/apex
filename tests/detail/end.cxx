@@ -5,6 +5,7 @@ struct wrapped {
   std::vector<int> x { 1, 2, 3, 4 };
 };
 
+decltype(auto) begin (wrapped& w) { return w.x.begin(); }
 decltype(auto) end (wrapped& w) { return w.x.end(); }
 
 TEST_CASE("ranges::end member function") {
