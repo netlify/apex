@@ -7,7 +7,7 @@
 
 #include <iterator>
 
-#if not APEX_CHECK_API(ranges, 201911)
+#if not APEX_CHECK_API(ranges, 201911) or APEX_USES_LIBSTDCXX
 namespace apex::detail::prelude {
 
 template <class T> using difference_type = typename T::difference_type;
@@ -26,7 +26,7 @@ concept subtractable = not difference<T>
 
 namespace apex {
 
-#if APEX_CHECK_API(ranges, 201911)
+#if APEX_CHECK_API(ranges, 201911) and not APEX_USES_LIBSTDCXX
   APEX_WARN("std::ranges is available. A refactor is needed")
   using ::std::input_or_output_iterator;
   using ::std::weakly_incrementable;

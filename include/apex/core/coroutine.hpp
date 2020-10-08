@@ -3,11 +3,11 @@
 
 #include <apex/core/prelude.hpp>
 
-#if __has_include(<coroutine>)
+#if __has_include(<coroutine>) and not APEX_USES_LIBSTDCXX
   #include <coroutine>
-#endif /* __has_include(<coroutine>) */
+#endif /* __has_include(<coroutine>) and not APEX_USES_LIBSTDCXX */
 
-#if not APEX_CHECK_API(coroutine, 201902)
+#if not APEX_CHECK_API(coroutine, 201902) or APEX_USES_LIBSTDCXX
 namespace apex::detail {
 
 template <class T>
@@ -103,7 +103,7 @@ struct suspend_always {
   constexpr void await_resume () const noexcept { }
 };
 
-#endif /* APEX_CHECK_API(coroutine, 201902) */
+#endif /* not APEX_CHECK_API(coroutine, 201902) or APEX_USES_LIBSTDCXX */
 } /* namespace apex */
 
 #endif /* APEX_CORE_COROUTINE_HPP */
