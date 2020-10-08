@@ -49,7 +49,22 @@
 
 #if __has_include(<version>)
   #include <version>
+#else
+  #include <ciso646>
 #endif /* __has_include(<version>) */
 /* clang-format on */
+
+#define APEX_USES_LIBSTDCXX 0
+#define APEX_USES_LIBCXX 0
+
+#if defined(_LIBCPP_VERSION)
+  #undef APEX_USES_LIBCXX
+  #define APEX_USES_LIBCXX 1
+#endif /* defined(_LIBCPP_VERSION) */
+
+#if defined(__GLIBCXX__)
+  #undef APEX_USES_LIBSTDCXX
+  #define APEX_USES_LIBSTDCXX 1
+#endif /* defined(__GLIBCXX__) */
 
 #endif /* APEX_DETAIL_PRELUDE_MACROS_HPP */
