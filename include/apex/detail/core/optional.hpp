@@ -263,25 +263,25 @@ struct monadic_base : operations_base<T> {
   constexpr auto transform (invocable<value_type const&&> auto&& f) const&&
   noexcept(safely_invocable<decltype(f), value_type const&&>) -> transform_type<decltype(f), value_type const&&> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), static_cast<value_type const&&>(**this));
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   constexpr auto transform (invocable<value_type const&> auto&& f) const&
   noexcept(safely_invocable<decltype(f), value_type const&>) -> transform_type<decltype(f), value_type const&> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   constexpr auto transform (invocable<value_type&&> auto&& f) &&
   noexcept(safely_invocable<decltype(f), value_type&&>) -> transform_type<decltype(f), value_type&&> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), static_cast<value_type&&>(**this));
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   constexpr auto transform (invocable<value_type&> auto&& f) &
   noexcept(safely_invocable<decltype(f), value_type&>) -> transform_type<decltype(f), value_type&> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   /* transform_or -- non-abbreviated form is used for readability (seriously) */
@@ -312,6 +312,27 @@ struct monadic_base : operations_base<T> {
     if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
     return static_cast<::std::invoke_result_t<F, value_type&>>(static_cast<U&&>(default_value));
   }
+
+protected:
+  constexpr auto apply (invocable<value_type const&&> auto&& f) const&&
+  noexcept(safely_invocable<decltype(f), value_type const&&>) -> transform_type<decltype(f), value_type const&&> {
+    return ::std::invoke(static_cast<decltype(f)>(f), static_cast<value_type const&&>(**this));
+  }
+
+  constexpr auto apply (invocable<value_type const&> auto&& f) const&
+  noexcept(safely_invocable<decltype(f), value_type const&>) -> transform_type<decltype(f), value_type const&> {
+    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+  }
+
+  constexpr auto apply (invocable<value_type&&> auto&& f) &&
+  noexcept(safely_invocable<decltype(f), value_type&&>) -> transform_type<decltype(f), value_type&&> {
+    return ::std::invoke(static_cast<decltype(f)>(f), static_cast<value_type&&>(**this));
+  }
+
+  constexpr auto apply (invocable<value_type&> auto&& f) &
+  noexcept(safely_invocable<decltype(f), value_type&>) -> transform_type<decltype(f), value_type&&> {
+    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+  }
 };
 
 template <class T>
@@ -341,28 +362,39 @@ struct monadic_base<T&> : operations_base<T&> {
   constexpr auto transform (invocable<const_reference> auto&& f) const
   noexcept(safely_invocable<decltype(f), const_reference>) -> transform_type<decltype(f), const_reference> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   constexpr auto transform (invocable<reference> auto&& f)
   noexcept(safely_invocable<decltype(f), const_reference>) -> transform_type<decltype(f), reference> {
     if (not *this) { return ::std::nullopt; }
-    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+    return this->apply(static_cast<decltype(f)>(f));
   }
 
   /* transform_or -- non-abbreviated form helps with readability (seriously) */
   template <invocable<const_reference> F, convertible_to<::std::invoke_result_t<F, const_reference>> U>
   constexpr transform_type<F, const_reference> transform_or (U&& default_value, F&& f) const
   noexcept(safely_invocable<F, const_reference>) {
-    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
+    if (*this) { return this->apply(static_cast<F&&>(f)); }
     return static_cast<::std::invoke_result_t<F, const_reference&>>(static_cast<U&&>(default_value));
   }
 
   template <invocable<reference> F, convertible_to<::std::invoke_result_t<F, reference>> U>
   constexpr transform_type<F, reference> transform_or (U&& default_value, F&& f)
   noexcept(safely_invocable<F, reference>) {
-    if (*this) { return ::std::invoke(static_cast<F&&>(f), **this); }
+    if (*this) { return this->apply(static_cast<F>(f)); }
     return static_cast<::std::invoke_result_t<F, reference>>(static_cast<U&&>(default_value));
+  }
+
+protected:
+  constexpr auto apply (invocable<const_reference> auto&& f) const
+  noexcept(safely_invocable<decltype(f), const_reference>) -> transform_type<decltype(f), const_reference> {
+    return ::std::invoke(static_cast<decltype(f)>(f), **this);
+  }
+
+  constexpr auto apply (invocable<reference> auto&& f)
+  noexcept(safely_invocable<decltype(f), reference>) -> transform_type<decltype(f), reference> {
+    return ::std::invoke(static_cast<decltype(f)>(f), **this);
   }
 };
 
