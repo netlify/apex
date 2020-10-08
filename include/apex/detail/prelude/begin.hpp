@@ -54,7 +54,9 @@ namespace apex::ranges {
 [[clang::no_destroy]] inline constexpr auto const begin = detail::prelude::begin::function { };
 
 } /* namespace apex::ranges */
-
+#else
+#include <ranges>
+namespace apex { namespace ranges = ::std::ranges; } /* namespace apex */
 #endif /* APEX_CHECK_API(ranges, 201911) */
 
 #endif /* APEX_DETAIL_PRELUDE_BEGIN_HPP */
