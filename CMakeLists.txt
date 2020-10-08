@@ -13,6 +13,11 @@ if (CMAKE_CXX_CLANG_TIDY)
   list(APPEND CMAKE_CXX_CLANG_TIDY --checks=readability-identifier-naming)
 endif()
 
+# Temporarily disable clang-tidy under CI
+if (DEFINED ENV{GITHUB_ACTIONS})
+  set(CMAKE_CXX_CLANG_TIDY)
+endif()
+
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/src/*.cxx")
 
 # TODO: Eventually replace this with a CMake wrapper project
