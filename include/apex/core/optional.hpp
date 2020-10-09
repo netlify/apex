@@ -2,6 +2,7 @@
 #define APEX_CORE_OPTIONAL_HPP
 
 #include <apex/detail/core/optional.hpp>
+#include <apex/core/scope.hpp>
 
 // We implement our own optional because std::optional
 // 1) cannot be specialized
@@ -145,6 +146,45 @@ struct optional final : private detail::optional::base<T> {
   noexcept(safely_invocable<decltype(df)> and safely_invocable<decltype(f), value_type&>) {
     if (not *this) { return this->otherwise(static_cast<decltype(df)>(df)); }
     return this->apply(static_cast<decltype(f)>(f));
+  }
+
+  constexpr optional filter (predicate<value_type const&&> auto&& p) const&&
+  noexcept(safely_copy_constructible<optional>) {
+    if (not *this) { return *this; }
+    if (::std::invoke(static_cast<decltype(p)>(p), static_cast<value_type const&&>(**this))) {
+      return *this;
+    } else { return ::std::nullopt; }
+  }
+
+  constexpr optional filter (predicate<value_type const&> auto&& p) const&
+  noexcept(safely_copy_constructible<optional>) {
+    if (not *this) { return *this; }
+    if (::std::invoke(static_cast<decltype(p)>(p), **this)) { return *this; }
+    else { return ::std::nullopt; }
+  }
+
+  constexpr optional filter (predicate<value_type const&&> auto&& p) &&
+  noexcept(safely_move_constructible<optional>) {
+    if (not *this) { return static_cast<optional&&>(*this); }
+    if (::std::invoke(static_cast<decltype(p)>(p), static_cast<value_type const&&>(**this))) {
+      return static_cast<optional&&>(*this);
+    } else { return ::std::nullopt; }
+  }
+
+  constexpr optional filter (predicate<value_type const&> auto&& p) &
+  noexcept(safely_copy_constructible<optional>) {
+    if (not *this) { return *this; }
+    if (::std::invoke(static_cast<decltype(p)>(p), static_cast<value_type const&>(**this))) {
+      return *this;
+    } else { return ::std::nullopt; }
+  }
+
+  [[nodiscard]] constexpr optional take ()
+  noexcept(::std::is_lvalue_reference_v<value_type> or safely_move_constructible<value_type>) {
+    if (not *this) { return *this; }
+    apex::scope_exit reset { [this] { this->reset(); } };
+    if constexpr (::std::is_lvalue_reference_v<value_type>) { return *this; }
+    else { return optional(static_cast<value_type&&>(**this)); }
   }
 
 private:
