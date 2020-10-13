@@ -495,21 +495,11 @@ struct move_assignable_base<T&> : copy_assignable_base<T&> {
 };
 
 template <class T>
-using constructor = prelude::enable::constructor<
-  ::std::is_copy_constructible_v<T>,
-  ::std::is_move_constructible_v<T>
->;
-
-template <class T>
-using assignment = prelude::enable::assignment<
-  ::std::conjunction_v<::std::is_copy_constructible<T>, ::std::is_copy_assignable<T>>,
-  ::std::conjunction_v<::std::is_move_constructible<T>, ::std::is_move_assignable<T>>
->;
-
-template <class T>
-struct base : move_assignable_base<T>, constructor<T>, assignment<T> {
-  using move_assignable_base<T>::move_assignable_base;
-};
+struct base :
+  move_assignable_base<T>,
+  prelude::enable::constructor<T>,
+  prelude::enable::assignment<T>
+{ using move_assignable_base<T>::move_assignable_base; };
 
 } /* namespace apex::detail::optional */
 

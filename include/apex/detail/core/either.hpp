@@ -189,7 +189,7 @@ struct storage_base<A&, B> {
 
   constexpr storage_base (::std::in_place_index_t<0>, A&&) noexcept = delete;
 
-  constexpr storage_base (::std::in_place_index_t<0>, ::std::reference_wrapper<A> value) :
+  constexpr storage_base (::std::in_place_index_t<0>, ::std::reference_wrapper<A> value) noexcept :
     storage_base { ::std::in_place_index<0>, value.get() }
   { }
 
@@ -667,31 +667,11 @@ struct move_assignable_base<A, B> : copy_assignable_base<A, B> {
 };
 
 template <class A, class B>
-using constructor = prelude::enable::constructor<
-  ::std::conjunction_v<::std::is_copy_constructible<A>, ::std::is_copy_constructible<B>>,
-  ::std::conjunction_v<::std::is_move_constructible<A>, ::std::is_move_constructible<B>>
->;
-
-template <class A, class B>
-using assignment = prelude::enable::assignment<
-  ::std::conjunction_v<
-    ::std::is_copy_constructible<A>,
-    ::std::is_copy_constructible<B>,
-    ::std::is_copy_assignable<A>,
-    ::std::is_copy_assignable<B>
-  >,
-  ::std::conjunction_v<
-    ::std::is_move_constructible<A>,
-    ::std::is_move_constructible<B>,
-    ::std::is_move_assignable<A>,
-    ::std::is_move_assignable<B>
-  >
->;
-
-template <class A, class B>
-struct base : move_assignable_base<A, B>, constructor<A, B>, assignment<A, B> {
-  using move_assignable_base<A, B>::move_assignable_base;
-};
+struct base :
+  move_assignable_base<A, B>,
+  prelude::enable::constructor<A, B>,
+  prelude::enable::assignment<A, B>
+{ using move_assignable_base<A, B>::move_assignable_base; };
 
 } /* namespace apex::detail::either */
 

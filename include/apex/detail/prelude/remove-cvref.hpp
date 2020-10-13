@@ -7,7 +7,7 @@
 namespace apex {
 
 #if APEX_CHECK_API(remove_cvref, 201711)
-  APEX_WARN("std::remove_cvref is available under this implementation")
+//  APEX_WARN("std::remove_cvref is available under this implementation")
   using ::std::remove_cvref_t;
   using ::std::remove_cvref;
 #else
