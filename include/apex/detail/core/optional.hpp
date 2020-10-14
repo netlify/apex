@@ -4,6 +4,7 @@
 #include <apex/detail/prelude/trivial.hpp>
 #include <apex/detail/prelude/enable.hpp>
 
+#include <apex/core/exception.hpp>
 #include <apex/core/concepts.hpp>
 #include <apex/core/traits.hpp>
 #include <apex/core/memory.hpp>
@@ -113,22 +114,22 @@ struct access_base : storage_base<T> {
   constexpr decltype(auto) operator * () & noexcept { return static_cast<T&>(this->storage); }
 
   constexpr decltype(auto) value () const&& noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return static_cast<value_type const&&>(**this);
   }
 
   constexpr decltype(auto) value () const& noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return static_cast<value_type const&>(**this);
   }
 
   constexpr decltype(auto) value () && noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return static_cast<value_type&&>(**this);
   }
 
   constexpr decltype(auto) value () & noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return static_cast<value_type&>(**this);
   }
 
@@ -148,12 +149,12 @@ struct access_base<T&> : storage_base<T&> {
   }
 
   constexpr T const& value () const noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return **this;
   }
 
   constexpr T& value () noexcept(false) {
-    if (not this->has_value()) { throw std::bad_optional_access { }; }
+    if (not this->has_value()) { throw bad_optional_access { }; }
     return **this;
   }
 
