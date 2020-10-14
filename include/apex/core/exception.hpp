@@ -10,8 +10,7 @@ namespace apex {
 struct exception : ::std::exception {
   using ::std::exception::what;
 
-  exception (apex::source_location=apex::source_location::current()) noexcept;
-  exception () noexcept = delete;
+  exception (source_location=source_location::current()) noexcept;
 
   virtual ~exception () noexcept = default;
 
@@ -28,14 +27,15 @@ private:
 };
 
 struct bad_member_access : exception {
-  using exception::exception;
+  bad_member_access (source_location=source_location::current()) noexcept;
+  virtual ~bad_member_access () noexcept = default;
 };
 
 template <class> struct bad_either_access;
 
 template <>
 struct bad_either_access<void> : bad_member_access {
-  using bad_member_access::bad_member_access;
+  bad_either_access (source_location=source_location::current()) noexcept;
   virtual char const* what () const noexcept override final;
 };
 
@@ -81,7 +81,7 @@ private:
 template <class T> bad_either_access (T&&) -> bad_either_access<::std::remove_cvref_t<T>>;
 
 struct bad_optional_access final : bad_member_access {
-  using bad_member_access::bad_member_access;
+  bad_optional_access(source_location=source_location::current()) noexcept;
 
   virtual char const* what () const noexcept override final;
 };

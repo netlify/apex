@@ -104,6 +104,15 @@ TEST_CASE("star-operator") {
   STATIC_REQUIRE(apex::same_as<lvalue_type, int&>);
 }
 
+TEST_CASE("value") {
+  apex::optional<int> opt { };
+  REQUIRE_THROWS_AS(opt.value(), apex::bad_optional_access);
+  try { [[maybe_unused]] auto value = opt.value(); }
+  catch (apex::bad_optional_access const& e) {
+    REQUIRE(std::string("value") == e.function_name());
+  }
+}
+
 TEST_CASE("arrow-operator") {
   apex::optional<std::string> opt { "arrow" };
   CHECK(opt);

@@ -2,8 +2,20 @@
 
 namespace apex {
 
-exception::exception (apex::source_location location) noexcept :
+exception::exception (source_location location) noexcept :
   location(location)
+{ }
+
+bad_member_access::bad_member_access (source_location location) noexcept :
+  exception(location)
+{ }
+
+bad_either_access<void>::bad_either_access(source_location location) noexcept :
+  bad_member_access(location)
+{ }
+
+bad_optional_access::bad_optional_access(source_location location) noexcept :
+  bad_member_access(location)
 { }
 
 char const* exception::function_name () const noexcept { return this->location.function_name(); }
