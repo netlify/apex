@@ -2,41 +2,9 @@
 #define APEX_CORE_EITHER_HPP
 
 #include <apex/detail/core/either.hpp>
+#include <apex/core/exception.hpp>
 
 namespace apex {
-
-template <class> struct bad_either_access;
-
-/* TODO: Support storing a backtrace of some kind... this might require our own base exception type */
-template <>
-struct bad_either_access<void> : ::std::exception {
-  explicit bad_either_access () noexcept = default;
-};
-
-template <class T>
-struct bad_either_access : bad_either_access<void> {
-  using value_type = T;
-
-  constexpr explicit bad_either_access (T const& value) noexcept(safely_copy_constructible<T>) :
-    value(value)
-  { }
-
-  constexpr explicit bad_either_access (T&& value) noexcept(safely_move_constructible<T>) :
-    value(static_cast<T&&>(value))
-  { }
-
-  constexpr virtual char const* what () const noexcept override final { return "apex::bad_either_access"; }
-
-  constexpr decltype(auto) get () const&& noexcept { return static_cast<T const&&>(this->value); }
-  constexpr decltype(auto) get () const& noexcept { return static_cast<T const&>(this->value); }
-  constexpr decltype(auto) get () && noexcept { return static_cast<T&&>(this->value); }
-  constexpr decltype(auto) get () & noexcept { return static_cast<T&>(this->value); }
-
-private:
-  value_type value;
-};
-
-template <class T> bad_either_access (T&&) -> bad_either_access<::std::remove_cvref_t<T>>;
 
 template <class A, class B>
 struct either final : private detail::either::base<A, B> {
