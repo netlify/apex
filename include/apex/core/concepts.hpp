@@ -15,7 +15,7 @@
 
 namespace apex {
 
-#if APEX_CHECK_API(concepts, 202002)
+#if APEX_CHECK_API(concepts, 202002) and not APEX_USES_LIBSTDCXX
   APEX_WARN("Concepts are now available. Please refactor.");
 #else
 

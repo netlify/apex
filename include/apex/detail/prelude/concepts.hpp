@@ -11,7 +11,7 @@
   #include <new>
 #endif /* __has_include(<concepts>) */
 
-#if not APEX_CHECK_API(concepts, 202002)
+#if not APEX_CHECK_API(concepts, 202002) or APEX_USES_LIBSTDCXX
 namespace apex::detail::concepts {
 
 template <class T, class U> concept similar_to = ::std::is_same_v<
