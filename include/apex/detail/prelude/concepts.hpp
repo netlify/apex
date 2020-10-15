@@ -27,7 +27,7 @@ template <class B> concept boolean_testable = convertible_to<B, bool>;
 
 namespace apex {
 
-#if APEX_CHECK_API(concepts, 202002)
+#if APEX_CHECK_API(concepts, 202002) and not APEX_USES_LIBSTDCXX
 
 APEX_WARN("<concepts> is available in this implementation")
 using ::std::default_initializable;
@@ -65,6 +65,7 @@ template <class T>
 concept default_initializable = constructible_from<T>
   and requires { T {}; }
   and requires (void* ptr) { ::new (ptr) T; };
+
 
 template <class T>
 concept move_constructible = constructible_from<T, T>
@@ -163,6 +164,10 @@ concept nonconvert_assignable_with = nonconvert_constructible_with<T, U>
 template <class T, class... Args>
 concept safely_constructible_from = constructible_from<T, Args...>
   and ::std::is_nothrow_constructible_v<T, Args...>;
+
+template <class T>
+concept safely_default_initializable = default_initializable<T>
+  and ::std::is_nothrow_default_constructible_v<T>;
 
 template <class T, class U>
 concept safely_assignable_from = assignable_from<T, U>
