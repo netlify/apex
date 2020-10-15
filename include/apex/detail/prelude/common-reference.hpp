@@ -5,7 +5,7 @@
 #include <apex/detail/prelude/detected.hpp>
 
 
-#if not APEX_CHECK_API(concepts, 202002)
+#if not APEX_CHECK_API(concepts, 202002) or APEX_USES_LIBSTDCXX
 
 namespace apex::detail::prelude {
 
@@ -145,7 +145,7 @@ struct common_ref<A, B> : common_ref<B, A> { };
 
 namespace apex {
 
-#if APEX_CHECK_API(concepts, 202002)
+#if APEX_CHECK_API(concepts, 202002) and not APEX_USES_LIBSTDCXX
   using ::std::basic_common_reference;
   using ::std::common_reference_t;
   using ::std::common_reference;

@@ -4,7 +4,7 @@
 #include <apex/detail/prelude/convertible-to.hpp>
 #include <apex/detail/prelude/traits.hpp>
 
-#if __has_include(<concepts>)
+#if __has_include(<concepts>) and not APEX_USES_LIBSTDCXX
   #include <concepts>
 #else
   #include <type_traits>

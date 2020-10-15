@@ -9,7 +9,7 @@
 
 // Temporary shim file
 
-#if __has_include(<concepts>)
+#if __has_include(<concepts>) and not APEX_USES_LIBSTDCXX
   #include <concepts>
 #endif /* __has_include(<concepts>) */
 

@@ -57,7 +57,7 @@ struct view_ptr {
   void reset (pointer ptr = nullptr) noexcept { this->ptr = ptr; }
   auto get () const noexcept { return this->ptr; }
 
-  #if APEX_CHECK_API(three_way_comparison, 201907)
+  #if APEX_CHECK_API(three_way_comparison, 201907) and not APEX_USES_LIBSTDCXX
   friend std::strong_ordering operator <=> (view_ptr const&, view_ptr const&) noexcept = default;
   friend std::strong_equality operator <=> (view_ptr const&, nullptr_t) noexcept = default;
   friend std::strong_equality operator <=> (nullptr_t, view_ptr const&) noexcept = default;
