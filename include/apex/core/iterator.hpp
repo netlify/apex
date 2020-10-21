@@ -90,8 +90,8 @@ struct back_emplacer {
 
   template <class T>
   requires requires (container_type* container, T&& x) { container->emplace_back(static_cast<T&&>(x)); }
-  back_emplacer& operator = (T&& x) noexcept(noexcept(this->container->emplace_back(static_cast<T&&>(x))))
-  {
+  back_emplacer& operator = (T&& x)
+  noexcept(noexcept(this->container->emplace_back(static_cast<T&&>(x)))) {
     this->container->emplace_back(static_cast<T&&>(x));
     return *this;
   }
