@@ -89,11 +89,10 @@ struct back_emplacer {
   { }
 
   template <class T>
-  back_emplacer& operator = (T&& t)
-    noexcept(noexcept(this->container->emplace_back(std::forward<T>(t))))
-    requires requires (container_type* container) { container->emplace_back(std::forward<T>(t)); }
+  requires requires (container_type* container, T&& x) { container->emplace_back(static_cast<T&&>(x)); }
+  back_emplacer& operator = (T&& x) noexcept(noexcept(this->container->emplace_back(static_cast<T&&>(x))))
   {
-    this->container.emplace_back(std::forward<T>(t));
+    this->container->emplace_back(static_cast<T&&>(x));
     return *this;
   }
 
