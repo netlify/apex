@@ -62,18 +62,23 @@ install(DIRECTORY include/
   FILES_MATCHING
     PATTERN "*.hpp")
 
-if (APEX_BUILD_TESTS)
+if (TARGET netlify::tests::apex)
+  target_link_libraries(netlify::tests::apex INTERFACE netlify::apex)
+endif()
+# Fallback for older behavior
+if (APEX_BUILD_TESTS AND TARGET netlify-apex-tests)
   target_link_libraries(netlify-apex-tests INTERFACE netlify::apex)
 endif()
 
-if (APEX_BUILD_DOCS)
-  set_property(TARGET docs
-    APPEND PROPERTY SPHINX_BUILD_DEFINITIONS
-      "project=Netlify Apex"
-      "copyright=Netlify Inc."
-      html_theme_options.github_user=netlify
-      html_theme_options.github_repo=apex)
-  set_property(TARGET docs PROPERTY SPHINX_BUILD_COLOR ON)
+# safeguard until netlify/cmake is updated
+if (TARGET sphinx::apex)
+  set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_USER "netlify")
+  set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_REPO "apex")
+  
+  set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_COPYRIGHT "Netlify, Inc")
+  set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_NAME "Netlify Apex")
+  
+  set_property(TARGET sphinx::apex PROPERTY SPHINX_CONSOLE_COLOR ON)
 endif()
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
