@@ -62,24 +62,15 @@ install(DIRECTORY include/
   FILES_MATCHING
     PATTERN "*.hpp")
 
-if (TARGET netlify::tests::apex)
-  target_link_libraries(netlify::tests::apex INTERFACE netlify::apex)
-endif()
-# Fallback for older behavior
-if (APEX_BUILD_TESTS AND TARGET netlify-apex-tests)
-  target_link_libraries(netlify-apex-tests INTERFACE netlify::apex)
-endif()
+target_link_libraries(netlify::tests::apex INTERFACE netlify::apex)
 
-# safeguard until netlify/cmake is updated
-if (TARGET sphinx::apex)
-  set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_USER "netlify")
-  set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_REPO "apex")
-  
-  set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_COPYRIGHT "Netlify, Inc")
-  set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_NAME "Netlify Apex")
-  
-  set_property(TARGET sphinx::apex PROPERTY SPHINX_CONSOLE_COLOR ON)
-endif()
+set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_USER "netlify")
+set_property(TARGET sphinx::apex PROPERTY SPHINX_GITHUB_REPO "apex")
+
+set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_COPYRIGHT "Netlify, Inc")
+set_property(TARGET sphinx::apex PROPERTY SPHINX_PROJECT_NAME "Netlify Apex")
+
+set_property(TARGET sphinx::apex PROPERTY SPHINX_CONSOLE_COLOR ON)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   feature_summary(DEFAULT_DESCRIPTION WHAT ALL)
