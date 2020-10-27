@@ -1,0 +1,41 @@
+name: Documentation
+on:
+  push:
+    paths:
+      - docs/**
+jobs:
+  build:
+    name: Build Documentation
+    runs-on: ubuntu-20.04
+    env:
+      CMAKE_GENERATOR: Ninja
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Get Pip Cache Directory
+        run: echo "::set-output name=dir::$(pip cache dir)"
+        id: pip-cache
+      - name: Cache Dependencies
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{runner.os}}-pip-${{ hashFiles('docs/**') }}
+          restore-keys: |
+            ${{ runner.os }}-pip
+            ${{ runner.os }}
+      - name: Update Pip
+        run: python -m pip install --upgrade pip
+      - name: Install Sphinx
+        run: pip install sphinx
+      - name: Install CMake + Ninja
+        uses: pip install cmake ninja
+      - name: Configure Project
+        run: >
+          cmake -B${{github.workspace}}/build -S${{github.workspace}}
+          -DAPEX_BUILD_DOCS=ON
+      - name: Build Documentation
+        run: cmake --build build --target docs
