@@ -32,7 +32,7 @@ jobs:
       - name: Install Sphinx
         run: pip install sphinx
       - name: Install CMake + Ninja
-        uses: pip install cmake ninja
+        run: pip install cmake ninja
       - name: Configure Project
         run: >
           cmake -B${{github.workspace}}/build -S${{github.workspace}}
