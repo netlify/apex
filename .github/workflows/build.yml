@@ -10,8 +10,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        build-type: [Debug, Release]
-        sanitizer: [ASAN, UBSAN]
+        build-type: [Debug, Release, RelWithDebInfo]
+        sanitizer: [ASAN, UBSAN, SAFE_STACK, TSAN]
         include:
           - build-type: Debug
             collect-coverage: true
