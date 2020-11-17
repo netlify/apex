@@ -1,6 +1,7 @@
 #ifndef APEX_DETAIL_CORE_EITHER_HPP
 #define APEX_DETAIL_CORE_EITHER_HPP
 
+#include <apex/detail/prelude/reference.hpp>
 #include <apex/detail/prelude/trivial.hpp>
 #include <apex/detail/prelude/enable.hpp>
 #include <apex/detail/prelude/types.hpp>
@@ -8,11 +9,30 @@
 #include <apex/core/concepts.hpp>
 #include <apex/core/traits.hpp>
 #include <apex/core/memory.hpp>
+#include <apex/core/bit.hpp>
 
 #include <utility>
 
 namespace apex::detail::either {
 
+struct value_t { };
+struct other_t { };
+
+inline constexpr value_t value { };
+inline constexpr other_t other { };
+
+using prelude::lvalue_reference;
+
+template <class T> concept trivial_storage = lvalue_reference<T>
+  or trivially_destructible<T>;
+
+template <class T> using storage_t = ::std::conditional_t<
+  lvalue_reference<T>,
+  ::std::remove_reference_t<T>*,
+  T
+>;
+
+/* TODO: Move to a detail/core/monads.hpp header? */
 template <class T, class U>
 concept safely_assign_either = requires (T x, U y) {
   { x.assign_value_with(static_cast<U&&>(y).assume_value()) } noexcept;
@@ -22,360 +42,85 @@ concept safely_assign_either = requires (T x, U y) {
   { x.assign_other(static_cast<U&&>(y)) } noexcept;
 };
 
+/* storage_base */
 template <class A, class B>
 struct storage_base {
   using value_type = A;
   using other_type = B;
 
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
+  constexpr storage_base () = delete;
+  constexpr ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
+
+protected:
+  using storage_value_type = storage_t<value_type>;
+  using storage_other_type = storage_t<other_type>;
+
+  template <class... Args> requires constructible_from<storage_value_type, Args...>
+  constexpr explicit(not sizeof...(Args)) storage_base (value_t, Args&&... args)
+  noexcept(safely_constructible_from<storage_value_type, Args...>) :
     primary(static_cast<Args&&>(args)...),
     which(0)
   { }
 
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
+  template <class... Args> requires constructible_from<storage_other_type, Args...>
+  constexpr explicit(not sizeof...(Args)) storage_base (other_t, Args&&... args)
+  noexcept(safely_constructible_from<storage_other_type, Args...>) :
     another(static_cast<Args&&>(args)...),
     which(1)
   { }
 
-  constexpr storage_base () noexcept = delete;
-  ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
-
-protected:
-  void clear_value () noexcept(destructible<value_type>) {
+  constexpr void clear_value () noexcept(destructible<value_type>) {
     ::apex::destroy_at(::std::addressof(this->primary));
   }
 
-  void clear_other () noexcept(destructible<other_type>) {
+  constexpr void clear_other () noexcept(destructible<other_type>) {
     ::apex::destroy_at(::std::addressof(this->another));
   }
 
-  void clear () noexcept(destructible<value_type> and destructible<other_type>) {
-    switch (this->which) {
-      case 0: return this->clear_value();
-      case 1: return this->clear_other();
-      default: __builtin_unreachable();
-    }
+  constexpr void clear () noexcept(destructible<value_type> and destructible<other_type>) {
+    if (this->which == 0) { return this->clear_value(); }
+    if (this->which == 1) { return this->clear_other(); }
+    apex::unreachable();
   }
 
   union {
-    value_type primary;
-    other_type another;
+    storage_value_type primary;
+    storage_other_type another;
   };
   u8 which;
 };
 
-template <class A, trivially_destructible B>
+template <trivial_storage A, trivial_storage B>
 struct storage_base<A, B> {
   using value_type = A;
   using other_type = B;
 
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
-    primary(static_cast<Args&&>(args)...),
-    which(0)
-  { }
-
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
-    another(static_cast<Args&&>(args)...),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
-  ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
-
-protected:
-  void clear_value () noexcept(destructible<value_type>) {
-    ::apex::destroy_at(::std::addressof(this->primary));
-  }
-
-  constexpr void clear_other () noexcept { }
-
-  void clear () noexcept(destructible<value_type>) {
-    if (not this->which) { this->clear_value(); }
-  }
-
-  union {
-    value_type primary;
-    other_type another;
-  };
-  u8 which;
-};
-
-template <trivially_destructible A, class B>
-struct storage_base<A, B> {
-  using value_type = A;
-  using other_type = B;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
-    primary(static_cast<Args&&>(args)...),
-    which(0)
-  { }
-
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
-    another(static_cast<Args&&>(args)...),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
-  ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
-
-protected:
-  constexpr void clear_value () noexcept { }
-
-  void clear_other () noexcept(destructible<other_type>) {
-    ::apex::destroy_at(::std::addressof(this->another));
-  }
-
-  void clear () noexcept(destructible<other_type>) {
-    if (this->which) { this->clear_other(); }
-  }
-
-  union {
-    value_type primary;
-    other_type another;
-  };
-  u8 which;
-};
-
-template <trivially_destructible A, trivially_destructible B>
-struct storage_base<A, B> {
-  using value_type = A;
-  using other_type = B;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
-    primary(static_cast<Args&&>(args)...),
-    which(0)
-  { }
-
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
-    another(static_cast<Args&&>(args)...),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
+  constexpr storage_base () = delete;
   constexpr ~storage_base () noexcept = default;
 
 protected:
-  constexpr void clear_value () noexcept { }
-  constexpr void clear_other () noexcept { }
-  constexpr void clear () noexcept { }
+  using storage_value_type = storage_t<value_type>;
+  using storage_other_type = storage_t<other_type>;
 
-  union {
-    value_type primary;
-    other_type another;
-  };
-  u8 which;
-};
-
-template <class A, class B>
-struct storage_base<A&, B> {
-  using value_type = A&;
-  using other_type = B;
-
-  constexpr storage_base (::std::in_place_index_t<0>, A&&) noexcept = delete;
-
-  constexpr storage_base (::std::in_place_index_t<0>, ::std::reference_wrapper<A> value) noexcept :
-    storage_base { ::std::in_place_index<0>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<0>, A& value) noexcept :
-    primary(::std::addressof(value)),
-    which(0)
-  { }
-
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
-    another(static_cast<Args&&>(args)...),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
-  ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
-
-protected:
-  constexpr void clear_value () noexcept { }
-
-  void clear_other () noexcept(destructible<other_type>) {
-    ::apex::destroy_at(::std::addressof(this->another));
-  }
-
-  void clear () noexcept(destructible<other_type>) {
-    if (this->which == 1) { this->clear_other(); }
-  }
-
-  union {
-    A* primary;
-    other_type another;
-  };
-  u8 which;
-};
-
-template <class A, trivially_destructible B>
-struct storage_base<A&, B> {
-  using value_type = A&;
-  using other_type = B;
-
-  constexpr storage_base (::std::in_place_index_t<0>, A&&) noexcept = delete;
-
-  constexpr storage_base (::std::in_place_index_t<0>, ::std::reference_wrapper<A> value) noexcept :
-    storage_base { ::std::in_place_index<0>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<0>, A& value) noexcept :
-    primary(::std::addressof(value)),
-    which(0)
-  { }
-
-  template <class... Args> requires constructible_from<other_type, Args...>
-  constexpr storage_base (::std::in_place_index_t<1>, Args&&... args)
-  noexcept(safely_constructible_from<other_type, Args...>) :
-    another(static_cast<Args&&>(args)...),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
-  constexpr ~storage_base () noexcept = default;
-
-protected:
-  constexpr void clear_value () noexcept { }
-  constexpr void clear_other () noexcept { }
-  constexpr void clear () noexcept { }
-
-  union {
-    A* primary;
-    other_type another;
-  };
-  u8 which;
-};
-
-template <class A, class B>
-struct storage_base<A, B&> {
-  using value_type = A;
-  using other_type = B&;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit(not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
+  template <class... Args> requires constructible_from<storage_value_type, Args...>
+  constexpr explicit(not sizeof...(Args)) storage_base (value_t, Args&&... args)
+  noexcept(safely_constructible_from<storage_value_type, Args...>) :
     primary(static_cast<Args&&>(args)...),
     which(0)
   { }
 
-  constexpr storage_base (::std::in_place_index_t<1>, B&&) noexcept = delete;
-
-  constexpr storage_base (::std::in_place_index_t<1>, ::std::reference_wrapper<B> value) noexcept :
-    storage_base { ::std::in_place_index<0>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<1>, B& value) :
-    another(::std::addressof(value)),
+  template <class... Args> requires constructible_from<storage_other_type, Args...>
+  constexpr explicit(not sizeof...(Args)) storage_base (other_t, Args&&... args)
+  noexcept(safely_constructible_from<storage_other_type, Args...>) :
+    another(static_cast<Args&&>(args)...),
     which(1)
   { }
 
-  constexpr storage_base () noexcept = delete;
-  ~storage_base () noexcept(noexcept(this->clear())) { this->clear(); }
-
-protected:
-  void clear_value () noexcept(destructible<value_type>) {
-    ::apex::destroy_at(::std::addressof(this->another));
-  }
-
-  constexpr void clear_other () noexcept { }
-
-  void clear () noexcept(destructible<value_type>) {
-    if (this->which == 0) { this->clear_value(); }
-  }
-
-  union {
-    value_type primary;
-    B* another;
-  };
-  u8 which;
-};
-
-template <trivially_destructible A, class B>
-struct storage_base<A, B&> {
-  using value_type = A;
-  using other_type = B&;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  constexpr explicit (not sizeof...(Args)) storage_base (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) :
-    primary(static_cast<Args&&>(args)...),
-    which(0)
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<1>, B&&) noexcept = delete;
-
-  constexpr storage_base (::std::in_place_index_t<1>, ::std::reference_wrapper<B> value) noexcept :
-    storage_base { ::std::in_place_index<1>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<1>, B& value) noexcept :
-    another(::std::addressof(value)),
-    which(1)
-  { }
-
-  constexpr storage_base () noexcept = delete;
-  constexpr ~storage_base () noexcept = default;
-
-protected:
-  constexpr void clear_value () noexcept { }
-  constexpr void clear_other () noexcept { }
   constexpr void clear () noexcept { }
 
   union {
-    value_type primary;
-    B* another;
-  };
-  u8 which;
-};
-
-template <class A, class B>
-struct storage_base<A&, B&> {
-  using value_type = A&;
-  using other_type = B&;
-
-  constexpr storage_base (::std::in_place_index_t<0>, A&&) noexcept = delete;
-  constexpr storage_base (::std::in_place_index_t<1>, B&&) noexcept = delete;
-
-  constexpr storage_base (::std::in_place_index_t<0>, ::std::reference_wrapper<A> value) noexcept :
-    storage_base { ::std::in_place_index<0>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<1>, ::std::reference_wrapper<B> value) noexcept :
-    storage_base { ::std::in_place_index<1>, value.get() }
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<0>, A& value) noexcept :
-    primary(::std::addressof(value)),
-    which(0)
-  { }
-
-  constexpr storage_base (::std::in_place_index_t<1>, B& value) noexcept :
-    another(::std::addressof(value)),
-    which(1)
-  { }
-
-protected:
-  union {
-    A* primary;
-    B* another;
+    storage_value_type primary;
+    storage_other_type another;
   };
   u8 which;
 };
@@ -384,79 +129,50 @@ template <class A, class B>
 struct access_base : storage_base<A, B> {
   using storage_base<A, B>::storage_base;
 
-  constexpr decltype(auto) assume_value () const&& noexcept { return static_cast<A const&&>(this->primary); }
-  constexpr decltype(auto) assume_value () const& noexcept { return static_cast<A const&>(this->primary); }
-  constexpr decltype(auto) assume_value () && noexcept { return static_cast<A&&>(this->primary); }
-  constexpr decltype(auto) assume_value () & noexcept { return static_cast<A&>(this->primary); }
+  constexpr decltype(auto) assume_value () const&& noexcept {
+    if constexpr (lvalue_reference<A>) { return ::std::as_const(*this->primary); }
+    else { return static_cast<A const&&>(this->primary); }
+  }
 
-  constexpr decltype(auto) assume_other () const&& noexcept { return static_cast<B const&&>(this->another); }
-  constexpr decltype(auto) assume_other () const& noexcept { return static_cast<B const&>(this->another); }
-  constexpr decltype(auto) assume_other () && noexcept { return static_cast<B&&>(this->another); }
-  constexpr decltype(auto) assume_other () & noexcept { return static_cast<B&>(this->another); }
+  constexpr decltype(auto) assume_value () const& noexcept {
+    if constexpr (lvalue_reference<A>) { return ::std::as_const(*this->primary); }
+    else { return static_cast<A const&>(this->primary); }
+  }
+
+  constexpr decltype(auto) assume_value () && noexcept {
+    if constexpr (lvalue_reference<A>) { return *this->primary; }
+    else { return static_cast<A&&>(this->primary); }
+  }
+
+  constexpr decltype(auto) assume_value () & noexcept {
+    if constexpr (lvalue_reference<A>) { return *this->primary; }
+    else { return static_cast<A&>(this->primary); }
+  }
+
+  constexpr decltype(auto) assume_other () const&& noexcept {
+    if constexpr (lvalue_reference<B>) { return ::std::as_const(*this->another); }
+    else { return static_cast<B const&&>(this->another); }
+  }
+
+  constexpr decltype(auto) assume_other () const& noexcept {
+    if constexpr(lvalue_reference<B>) { return ::std::as_const(*this->another); }
+    else { return static_cast<B const&>(this->another); }
+  }
+
+  constexpr decltype(auto) assume_other () && noexcept {
+    if constexpr(lvalue_reference<B>) { return *this->another; }
+    else { return static_cast<B&&>(this->another); }
+  }
+
+  constexpr decltype(auto) assume_other () & noexcept {
+    if constexpr(lvalue_reference<B>) { return *this->another; }
+    else { return static_cast<B&>(this->another); }
+  }
 };
 
 template <class A, class B>
-struct access_base<A&, B> : storage_base<A, B> {
-  using storage_base<A, B>::storage_base;
-
-  constexpr decltype(auto) assume_value () const noexcept { return static_cast<A const&>(this->primary); }
-  constexpr decltype(auto) assume_value () noexcept { return static_cast<A&>(this->primary); }
-
-  constexpr decltype(auto) assume_other () const&& noexcept { return static_cast<B const&&>(this->another); }
-  constexpr decltype(auto) assume_other () const& noexcept { return static_cast<B const&>(this->another); }
-  constexpr decltype(auto) assume_other () && noexcept { return static_cast<B&&>(this->another); }
-  constexpr decltype(auto) assume_other () & noexcept { return static_cast<B&>(this->another); }
-};
-
-template <class A, class B>
-struct access_base<A, B&> : storage_base<A, B> {
-  using storage_base<A, B>::storage_base;
-
-  constexpr decltype(auto) assume_value () const&& noexcept { return static_cast<A const&&>(this->primary); }
-  constexpr decltype(auto) assume_value () const& noexcept { return static_cast<A const&>(this->primary); }
-  constexpr decltype(auto) assume_value () && noexcept { return static_cast<A&&>(this->primary); }
-  constexpr decltype(auto) assume_value () & noexcept { return static_cast<A&>(this->primary); }
-
-  constexpr decltype(auto) assume_other () const noexcept { return static_cast<B const&>(this->another); }
-  constexpr decltype(auto) assume_other () noexcept { return static_cast<B&>(this->another); }
-};
-
-template <class A, class B>
-struct access_base<A&, B&> : storage_base<A, B> {
-  using storage_base<A, B>::storage_base;
-
-  constexpr decltype(auto) assume_value () const noexcept { return static_cast<A const&>(this->primary); }
-  constexpr decltype(auto) assume_value () noexcept { return static_cast<A&>(this->primary); }
-
-  constexpr decltype(auto) assume_other () const noexcept { return static_cast<B const&>(this->another); }
-  constexpr decltype(auto) assume_other () noexcept { return static_cast<B&>(this->another); }
-};
-
-template <class A, class B>
-struct construction_base : access_base<A, B> {
+struct operations_base : access_base<A, B> {
   using access_base<A, B>::access_base;
-};
-
-template <class A, different_from<A> B>
-struct construction_base<A, B> : access_base<A, B> {
-  using access_base<A, B>::access_base;
-
-  template <class... Args> requires constructible_from<A, Args...>
-  constexpr explicit(not sizeof...(Args)) construction_base (::std::in_place_type_t<A>, Args&&... args)
-  noexcept(safely_constructible_from<A, Args...>) :
-    construction_base(::std::in_place_index<0>, static_cast<Args&&>(args)...)
-  { }
-
-  template <class... Args> requires constructible_from<B, Args...>
-  constexpr explicit(not sizeof...(Args)) construction_base (::std::in_place_type_t<B>, Args&&... args)
-  noexcept(safely_constructible_from<B, Args...>) :
-    construction_base(::std::in_place_index<1>, static_cast<Args&&>(args)...)
-  { }
-};
-
-template <class A, class B>
-struct operations_base : construction_base<A, B> {
-  using construction_base<A, B>::construction_base;
 
   [[nodiscard]] constexpr bool has_value () const noexcept { return this->index() == 0; }
   [[nodiscard]] constexpr bool has_other () const noexcept { return this->index() == 1; }
@@ -531,48 +247,6 @@ protected:
       this->assume_value() = static_cast<A&&>(backup);
       throw;
     }
-  }
-};
-
-template <class A, class B>
-struct emplacement_base : operations_base<A, B> {
-  using value_type = A;
-  using other_type = B;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  [[nodiscard]] value_type& try_emplace (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) {
-    if (this->has_value()) { return this->assume_value(); }
-    return this->emplace(::std::in_place_index<0>, static_cast<Args&&>(args)...);
-  }
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  [[nodiscard]] value_type& emplace (::std::in_place_index_t<0>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) {
-    this->clear();
-    operations_base<A, B>::construct_value(static_cast<Args&&>(args)...);
-    return this->assume_value();
-  }
-};
-
-template <class A, different_from<A> B>
-struct emplacement_base<A, B> : operations_base<A, B> {
-  using value_type = A;
-  using other_type = B;
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  [[nodiscard]] value_type& try_emplace (::std::in_place_type_t<value_type>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) {
-    if (this->has_value()) { return this->assume_value(); }
-    return this->emplace(::std::in_place_type<value_type>, static_cast<Args&&>(args)...);
-  }
-
-  template <class... Args> requires constructible_from<value_type, Args...>
-  [[nodiscard]] value_type& emplace (::std::in_place_type_t<value_type>, Args&&... args)
-  noexcept(safely_constructible_from<value_type, Args...>) {
-    this->clear();
-    operations_base<A, B>::construct_value(static_cast<Args&&>(args)...);
-    return this->assume_value();
   }
 };
 
