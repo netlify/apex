@@ -2,6 +2,7 @@
 #define APEX_DETAIL_PRELUDE_COMMON_REFERENCE_HPP
 
 #include <apex/detail/prelude/remove-cvref.hpp>
+#include <apex/detail/prelude/reference.hpp>
 #include <apex/detail/prelude/detected.hpp>
 
 
@@ -91,8 +92,8 @@ using cond_res = decltype(false
   : ::std::declval<Y(&)()>()());
 
 template <class A, class B>
-concept meta_trans_other_3_5 = ::std::is_lvalue_reference_v<A>
-  and ::std::is_lvalue_reference_v<B>
+concept meta_trans_other_3_5 = lvalue_reference<A>
+  and lvalue_reference<B>
   and requires {
     typename cond_res<
       copy_cv_t<::std::remove_reference_t<A>, ::std::remove_reference_t<B>>&,
@@ -101,23 +102,23 @@ concept meta_trans_other_3_5 = ::std::is_lvalue_reference_v<A>
   };
 
 template <class A, class B>
-concept meta_trans_other_3_6 = ::std::is_rvalue_reference_v<A>
-  and ::std::is_rvalue_reference_v<B>
+concept meta_trans_other_3_6 = rvalue_reference<A>
+  and rvalue_reference<B>
   and requires {
     requires ::std::is_convertible_v<A, typename meta_trans_other_3_6_type<A, B>::type>;
     requires ::std::is_convertible_v<B, typename meta_trans_other_3_6_type<A, B>::type>; 
   };
 
 template <class A, class B>
-concept meta_trans_other_3_7 = ::std::is_rvalue_reference_v<A>
-  and ::std::is_lvalue_reference_v<B>
+concept meta_trans_other_3_7 = rvalue_reference<A>
+  and lvalue_reference<B>
   and requires {
     ::std::is_convertible_v<A, common_ref<cref<A>, ::std::remove_reference_t<B>&>>;
   };
 
 template <class A, class B>
-concept meta_trans_other_3_8 = ::std::is_lvalue_reference_v<A>
-  and ::std::is_rvalue_reference_v<B>;
+concept meta_trans_other_3_8 = lvalue_reference<A>
+  and rvalue_reference<B>;
 
 // [meta.trans.other]/3.5
 template <class A, class B> requires meta_trans_other_3_5<A, B>

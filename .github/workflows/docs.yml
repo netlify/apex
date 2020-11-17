@@ -40,3 +40,11 @@ jobs:
           -DAPEX_BUILD_DOCS=ON
       - name: Build Documentation
         run: cmake --build build --target docs
+#      - name: Deploy to Netlify
+#        env:
+#          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+#          NETLIFY_SITE_IDE: ${{ secrets.NETLIFY_SITE_ID }}
+#        run: >
+#          netlify deploy --json
+#          --dir=${{github.workspace}}/build/docs
+#          --alias=${{github.ref}}
