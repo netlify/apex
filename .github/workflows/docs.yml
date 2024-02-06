@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Get Pip Cache Directory
-        run: echo "::set-output name=dir::$(pip cache dir)"
+        run: echo "dir=$(pip cache dir)" >> "$GITHUB_OUTPUT"
         id: pip-cache
       - name: Cache Dependencies
         uses: actions/cache@v2
